@@ -1026,6 +1026,14 @@
                         </select>
                     </div>
                 </div>
+                <div class="input-row" id="accountSelectionRow">
+                    <div class="input-group">
+                        <label>출금 계좌</label>
+                        <select id="fromAccount">
+                            <option value="">선택 안함 (자산 변동 없음)</option>
+                        </select>
+                    </div>
+                </div>
                 <div style="display: none;" id="paymentMethodGroup"></div>
                 <button class="btn" onclick="addDailyExpense()">추가</button>
 
@@ -1273,6 +1281,12 @@
                         <option value="crypto">🪙 가상화폐카드</option>
                     </select>
                 </div>
+                <div class="input-group">
+                    <label>출금 계좌</label>
+                    <select id="editFromAccount">
+                        <option value="">선택 안함</option>
+                    </select>
+                </div>
             </div>
             <div class="edit-actions">
                 <button class="btn btn-cancel" onclick="closeEditModal()">취소</button>
@@ -1374,6 +1388,7 @@
                     </div>
                 `;
                 document.getElementById('totalAssetsEUR').textContent = '€0.00';
+                updateAccountDropdowns();
                 return;
             }
 
@@ -1406,6 +1421,31 @@
 
             list.innerHTML = html;
             document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toFixed(2)}`;
+            
+            // 계좌 선택 드롭다운 업데이트
+            updateAccountDropdowns();
+        }
+
+        // 계좌 선택 드롭다운 업데이트
+        function updateAccountDropdowns() {
+            const fromAccountSelect = document.getElementById('fromAccount');
+            const editFromAccountSelect = document.getElementById('editFromAccount');
+            
+            if (!fromAccountSelect) return;
+            
+            let html = '<option value="">선택 안함 (자산 변동 없음)</option>';
+            
+            assets.forEach(asset => {
+                const symbol = currencySymbols[asset.currency];
+                const displayText = `${asset.platform} (${symbol}${asset.amount.toFixed(2)} ${asset.currency})`;
+                html += `<option value="${asset.id}">${displayText}</option>`;
+            });
+            
+            fromAccountSelect.innerHTML = html;
+            
+            if (editFromAccountSelect) {
+                editFromAccountSelect.innerHTML = html;
+            }
         }
 
         // 기본 카테고리
@@ -1583,6 +1623,9 @@
             // 카테고리 UI 업데이트
             updateAllCategorySelects();
             renderCustomCategoryList();
+            
+            // 계좌 드롭다운 업데이트
+            updateAccountDropdowns();
         }
 
         // 데이터 저장
@@ -1764,6 +1807,7 @@
             const amount = parseFloat(document.getElementById('dailyAmount').value);
             const transactionType = document.getElementById('transactionType').value;
             const paymentMethod = transactionType === 'income' ? 'income' : document.getElementById('paymentMethod').value;
+            const fromAccountId = document.getElementById('fromAccount').value;
             let category = document.getElementById('categorySelect').value;
 
             if (!date || !name || !amount) {
@@ -1793,6 +1837,27 @@
                 category = '수입';
             }
 
+            // 계좌에서 차감/입금
+            if (fromAccountId) {
+                const account = assets.find(a => a.id === parseInt(fromAccountId));
+                if (account) {
+                    if (transactionType === 'expense') {
+                        account.amount -= amount;
+                        if (account.amount < 0) {
+                            const confirmed = confirm(`${account.platform} 잔액이 부족합니다. 그래도 진행하시겠습니까?\n현재 잔액: ${currencySymbols[account.currency]}${(account.amount + amount).toFixed(2)}\n지출 후: ${currencySymbols[account.currency]}${account.amount.toFixed(2)}`);
+                            if (!confirmed) {
+                                account.amount += amount; // 원복
+                                return;
+                            }
+                        }
+                    } else {
+                        // 수입인 경우 입금
+                        account.amount += amount;
+                    }
+                    account.updatedAt = new Date().toISOString();
+                }
+            }
+
             dailyExpenses.push({
                 id: Date.now(),
                 date: date,
@@ -1800,7 +1865,8 @@
                 amount: amount,
                 paymentMethod: paymentMethod,
                 type: transactionType,
-                category: category || '기타'
+                category: category || '기타',
+                fromAccountId: fromAccountId ? parseInt(fromAccountId) : null
             });
 
             document.getElementById('dailyName').value = '';
@@ -1808,11 +1874,13 @@
             document.getElementById('transactionType').value = 'expense';
             document.getElementById('paymentMethod').value = 'regular';
             document.getElementById('categorySelect').value = '';
+            document.getElementById('fromAccount').value = '';
             updatePaymentMethodOptions();
 
             saveData();
             updateDisplay();
             renderDailyList();
+            renderAssetsList(); // 자산 목록도 업데이트
             
             // 달력 보기가 활성화되어 있으면 달력도 업데이트
             if (currentView === 'calendar') {
@@ -2004,10 +2072,28 @@
 
         // 일별지출 삭제
         function deleteDailyExpense(id) {
+            const expense = dailyExpenses.find(e => e.id === id);
+            
+            // 계좌로 복원
+            if (expense && expense.fromAccountId) {
+                const account = assets.find(a => a.id === expense.fromAccountId);
+                if (account) {
+                    if (expense.type === 'expense') {
+                        // 지출을 삭제하면 계좌에 다시 추가
+                        account.amount += expense.amount;
+                    } else {
+                        // 수입을 삭제하면 계좌에서 차감
+                        account.amount -= expense.amount;
+                    }
+                    account.updatedAt = new Date().toISOString();
+                }
+            }
+            
             dailyExpenses = dailyExpenses.filter(e => e.id !== id);
             saveData();
             updateDisplay();
             renderDailyList();
+            renderAssetsList(); // 자산 목록도 업데이트
             
             // 달력 보기가 활성화되어 있으면 달력도 업데이트
             if (currentView === 'calendar') {
@@ -2493,6 +2579,7 @@
             document.getElementById('editName').value = expense.name;
             document.getElementById('editAmount').value = expense.amount;
             document.getElementById('editCategory').value = expense.category || '기타';
+            document.getElementById('editFromAccount').value = expense.fromAccountId || '';
             
             if (transactionType === 'expense') {
                 document.getElementById('editPaymentMethod').value = expense.paymentMethod || 'regular';
@@ -2522,6 +2609,7 @@
             const amount = parseFloat(document.getElementById('editAmount').value);
             const category = document.getElementById('editCategory').value;
             const paymentMethod = transactionType === 'income' ? 'income' : document.getElementById('editPaymentMethod').value;
+            const newFromAccountId = document.getElementById('editFromAccount').value;
 
             if (!date || !name || !amount) {
                 alert('모든 필드를 입력해주세요.');
@@ -2530,6 +2618,33 @@
 
             const expenseIndex = dailyExpenses.findIndex(e => e.id === editingExpenseId);
             if (expenseIndex !== -1) {
+                const oldExpense = dailyExpenses[expenseIndex];
+                
+                // 이전 계좌로 금액 복원
+                if (oldExpense.fromAccountId) {
+                    const oldAccount = assets.find(a => a.id === oldExpense.fromAccountId);
+                    if (oldAccount) {
+                        if (oldExpense.type === 'expense') {
+                            oldAccount.amount += oldExpense.amount;
+                        } else {
+                            oldAccount.amount -= oldExpense.amount;
+                        }
+                    }
+                }
+                
+                // 새 계좌에서 차감/입금
+                if (newFromAccountId) {
+                    const newAccount = assets.find(a => a.id === parseInt(newFromAccountId));
+                    if (newAccount) {
+                        if (transactionType === 'expense') {
+                            newAccount.amount -= amount;
+                        } else {
+                            newAccount.amount += amount;
+                        }
+                        newAccount.updatedAt = new Date().toISOString();
+                    }
+                }
+                
                 dailyExpenses[expenseIndex] = {
                     ...dailyExpenses[expenseIndex],
                     date: date,
@@ -2537,12 +2652,14 @@
                     amount: amount,
                     paymentMethod: paymentMethod,
                     type: transactionType,
-                    category: category
+                    category: category,
+                    fromAccountId: newFromAccountId ? parseInt(newFromAccountId) : null
                 };
 
                 saveData();
                 updateDisplay();
                 renderDailyList();
+                renderAssetsList(); // 자산 목록도 업데이트
                 
                 if (currentView === 'calendar') {
                     renderCalendar();
@@ -2575,7 +2692,10 @@
                 salaries: salaries,
                 fixedExpenses: fixedExpenses,
                 dailyExpenses: dailyExpenses,
-                exportDate: new Date().toISOString()
+                customCategories: customCategories,
+                assets: assets,
+                exportDate: new Date().toISOString(),
+                version: '2.0' // 버전 추가
             };
 
             const jsonStr = JSON.stringify(data, null, 2);
@@ -2604,13 +2724,13 @@
                     const data = JSON.parse(e.target.result);
                     
                     // 데이터 유효성 검사
-                    if (!data.salaries && !data.fixedExpenses && !data.dailyExpenses) {
+                    if (!data.salaries && !data.fixedExpenses && !data.dailyExpenses && !data.assets) {
                         alert('올바른 가계부 데이터 파일이 아닙니다.');
                         return;
                     }
 
                     // 데이터 병합 여부 확인
-                    if (salaries.length > 0 || fixedExpenses.length > 0 || dailyExpenses.length > 0) {
+                    if (salaries.length > 0 || fixedExpenses.length > 0 || dailyExpenses.length > 0 || assets.length > 0 || customCategories.length > 0) {
                         const merge = confirm('기존 데이터가 있습니다. 기존 데이터를 유지하고 새 데이터를 추가하시겠습니까?\n\n확인: 데이터 병합\n취소: 기존 데이터 삭제 후 가져오기');
                         
                         if (merge) {
@@ -2618,17 +2738,23 @@
                             salaries = [...salaries, ...(data.salaries || [])];
                             fixedExpenses = [...fixedExpenses, ...(data.fixedExpenses || [])];
                             dailyExpenses = [...dailyExpenses, ...(data.dailyExpenses || [])];
+                            customCategories = [...customCategories, ...(data.customCategories || [])];
+                            assets = [...assets, ...(data.assets || [])];
                         } else {
                             // 데이터 교체
                             salaries = data.salaries || [];
                             fixedExpenses = data.fixedExpenses || [];
                             dailyExpenses = data.dailyExpenses || [];
+                            customCategories = data.customCategories || [];
+                            assets = data.assets || [];
                         }
                     } else {
                         // 기존 데이터가 없으면 그냥 가져오기
                         salaries = data.salaries || [];
                         fixedExpenses = data.fixedExpenses || [];
                         dailyExpenses = data.dailyExpenses || [];
+                        customCategories = data.customCategories || [];
+                        assets = data.assets || [];
                     }
 
                     // 월급 날짜순 정렬
@@ -2639,6 +2765,10 @@
                     renderSalaryList();
                     renderFixedList();
                     renderDailyList();
+                    renderAssetsList();
+                    renderCustomCategoryList();
+                    updateAllCategorySelects();
+                    updateAccountDropdowns();
                     
                     if (currentView === 'calendar') {
                         renderCalendar();
