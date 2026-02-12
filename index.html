@@ -1184,6 +1184,10 @@
                     <div style="font-size: 32px; font-weight: bold; color: #212529; margin-top: 10px;" id="totalAssetsEUR">
                         €0.00
                     </div>
+                    <div style="margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn" onclick="fetchLiveRates()" style="padding: 8px 16px; font-size: 13px; background: #495057;">🔄 실시간 환율 조회</button>
+                        <span id="rateStatus" style="font-size: 13px; color: #6c757d;">📌 기본 환율 사용 중</span>
+                    </div>
                 </div>
 
                 <!-- 자산 목록 -->
@@ -1293,14 +1297,89 @@
         let customCategories = []; // 사용자 정의 카테고리
         let assets = []; // 자산 목록
 
-        // 환율 (고정값 - 실제 사용시에는 API로 가져올 수 있음)
-        const exchangeRates = {
+        // 환율 (기본값 - 실시간 API로 업데이트됨)
+        let exchangeRates = {
             'EUR': 1,
-            'KRW': 0.00073, // 1 KRW = 0.00073 EUR
-            'USD': 0.92, // 1 USD = 0.92 EUR
-            'BTC': 85000, // 1 BTC = 85000 EUR (예시)
-            'ETH': 2500 // 1 ETH = 2500 EUR (예시)
+            'KRW': 0.00073,
+            'USD': 0.92,
+            'BTC': 85000,
+            'ETH': 2500
         };
+        let ratesLastUpdated = null;
+        let ratesLoading = false;
+
+        // 실시간 환율 + 코인 가격 조회
+        async function fetchLiveRates() {
+            if (ratesLoading) return;
+            ratesLoading = true;
+            updateRateStatusUI('loading');
+
+            let fiatOk = false;
+            let cryptoOk = false;
+
+            // 1) 법정화폐 환율 (frankfurter.app - 무료, CORS 지원)
+            try {
+                const fiatRes = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,KRW');
+                if (fiatRes.ok) {
+                    const fiatData = await fiatRes.json();
+                    // frankfurter는 EUR 기준 → 1 KRW = 1/rate EUR
+                    if (fiatData.rates) {
+                        if (fiatData.rates.KRW) exchangeRates['KRW'] = 1 / fiatData.rates.KRW;
+                        if (fiatData.rates.USD) exchangeRates['USD'] = 1 / fiatData.rates.USD;
+                        fiatOk = true;
+                    }
+                }
+            } catch (e) {
+                console.warn('법정화폐 환율 조회 실패:', e);
+            }
+
+            // 2) 가상화폐 시세 (CoinGecko - 무료, CORS 지원)
+            try {
+                const cryptoRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur');
+                if (cryptoRes.ok) {
+                    const cryptoData = await cryptoRes.json();
+                    if (cryptoData.bitcoin?.eur) exchangeRates['BTC'] = cryptoData.bitcoin.eur;
+                    if (cryptoData.ethereum?.eur) exchangeRates['ETH'] = cryptoData.ethereum.eur;
+                    cryptoOk = true;
+                }
+            } catch (e) {
+                console.warn('가상화폐 시세 조회 실패:', e);
+            }
+
+            ratesLoading = false;
+
+            if (fiatOk || cryptoOk) {
+                ratesLastUpdated = new Date();
+                updateRateStatusUI('success');
+            } else {
+                updateRateStatusUI('error');
+            }
+
+            // 자산 목록 재렌더링
+            renderAssetsList();
+            updateDisplay();
+        }
+
+        // 환율 상태 UI 업데이트
+        function updateRateStatusUI(status) {
+            const statusEl = document.getElementById('rateStatus');
+            if (!statusEl) return;
+
+            if (status === 'loading') {
+                statusEl.innerHTML = '<span style="color: #6c757d;">⏳ 환율 조회 중...</span>';
+            } else if (status === 'success') {
+                const timeStr = ratesLastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                const krwRate = (1 / exchangeRates['KRW']).toFixed(0);
+                statusEl.innerHTML = `<span style="color: #28a745;">✅ ${timeStr} 업데이트</span><br>` +
+                    `<span style="color: #6c757d; font-size: 12px;">` +
+                    `1 USD = €${exchangeRates['USD'].toFixed(4)} · ` +
+                    `1,000 KRW = €${(exchangeRates['KRW'] * 1000).toFixed(4)} · ` +
+                    `1 BTC = €${exchangeRates['BTC'].toLocaleString()} · ` +
+                    `1 ETH = €${exchangeRates['ETH'].toLocaleString()}</span>`;
+            } else if (status === 'error') {
+                statusEl.innerHTML = '<span style="color: #dc3545;">❌ 조회 실패 (기본값 사용 중)</span>';
+            }
+        }
 
         // 통화 기호 매핑
         const currencySymbols = {
@@ -1396,7 +1475,7 @@
                             <div class="list-item-detail">
                                 ${symbol}${asset.amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8})}
                                 ${asset.currency}
-                                ${asset.currency !== 'EUR' ? `<span style="color: #6c757d; margin-left: 8px;">≈ €${valueInEUR.toFixed(2)}</span>` : ''}
+                                ${asset.currency !== 'EUR' ? `<span style="color: #6c757d; margin-left: 8px;">≈ €${valueInEUR.toFixed(2)}${ratesLastUpdated ? ' 📡' : ''}</span>` : ''}
                             </div>
                         </div>
                         <button class="btn btn-delete" onclick="deleteAsset(${asset.id})">삭제</button>
@@ -1405,7 +1484,7 @@
             });
 
             list.innerHTML = html;
-            document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toFixed(2)}`;
+            document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toFixed(2)}${ratesLastUpdated ? ' (실시간)' : ''}`;
         }
 
         // 기본 카테고리
@@ -2829,6 +2908,9 @@
 
         // 페이지 로드 시 데이터 불러오기
         loadData();
+
+        // 페이지 로드 시 실시간 환율 자동 조회
+        fetchLiveRates();
 
         // 카테고리별 통계 렌더링
         function renderCategoryStats() {
