@@ -25,6 +25,24 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             overflow: hidden;
+            position: relative;
+        }
+
+        .lang-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10;
+        }
+
+        .lang-selector select {
+            padding: 6px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            color: #495057;
         }
 
         .header {
@@ -76,6 +94,93 @@
             border-radius: 8px;
             margin-top: 20px;
             border: 1px solid #e9ecef;
+        }
+
+        .balance-hero {
+            text-align: center;
+            padding: 24px 20px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+            border-radius: 10px;
+            color: white;
+            position: relative;
+        }
+
+        .balance-hero-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .balance-hero-amount {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .balance-hero-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+
+        .balance-hero-row {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .balance-hero-stat {
+            text-align: center;
+        }
+
+        .balance-hero-stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 4px;
+        }
+
+        .balance-hero-stat-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .balance-hero-stat-value.positive {
+            color: #69db7c;
+        }
+
+        .balance-hero-stat-value.negative {
+            color: #ff8787;
+        }
+
+        .privacy-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .privacy-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .amount-hidden {
+            letter-spacing: 4px;
         }
 
         .balance-item {
@@ -848,77 +953,103 @@
 </head>
 <body>
     <div class="container">
+        <div class="lang-selector">
+            <select id="langSelect" onchange="changeLanguage(this.value)">
+                <option value="ko">🇰🇷 한국어</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="de">🇩🇪 Deutsch</option>
+            </select>
+        </div>
         <div class="header">
-            <h1>💰 나의 가계부</h1>
+            <h1 data-i18n="title">💰 나의 가계부</h1>
             <div class="month-selector">
                 <button onclick="changeViewMonth(-1)">◀</button>
                 <span id="viewMonth"></span>
                 <button onclick="changeViewMonth(1)">▶</button>
             </div>
+
+            <!-- Total Assets Hero -->
+            <div class="balance-hero">
+                <button class="privacy-toggle" onclick="togglePrivacy()" id="privacyBtn" title="Hide/Show amounts">👁</button>
+                <div class="balance-hero-label" data-i18n="totalAssetLabel">총 자산</div>
+                <div class="balance-hero-amount" id="heroTotalAssets">€0.00</div>
+                <div class="balance-hero-sub" id="heroAssetsSub"></div>
+                <div class="balance-hero-row">
+                    <div class="balance-hero-stat">
+                        <div class="balance-hero-stat-label" data-i18n="remaining">통장 남은 금액</div>
+                        <div class="balance-hero-stat-value positive" id="heroRemaining">€0</div>
+                    </div>
+                    <div class="balance-hero-stat">
+                        <div class="balance-hero-stat-label" data-i18n="monthlySpending">이번 달 지출</div>
+                        <div class="balance-hero-stat-value negative" id="heroMonthlySpent">€0</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="balance-summary">
                 <div class="balance-item">
-                    <span>월급:</span>
-                    <span id="salaryDisplay">€0</span>
+                    <span data-i18n="salary">월급:</span>
+                    <span class="privacy-amount" id="salaryDisplay">€0</span>
                 </div>
                 <div class="balance-item income">
-                    <span>+ 기타수입:</span>
-                    <span id="incomeDisplay">€0</span>
+                    <span data-i18n="otherIncome">+ 기타수입:</span>
+                    <span class="privacy-amount" id="incomeDisplay">€0</span>
                 </div>
                 <div class="balance-item">
-                    <span>고정지출:</span>
-                    <span id="fixedExpenseDisplay">€0</span>
+                    <span data-i18n="fixedExpense">고정지출:</span>
+                    <span class="privacy-amount" id="fixedExpenseDisplay">€0</span>
                 </div>
                 <div class="balance-item">
-                    <span>일반카드 지출:</span>
-                    <span id="dailyExpenseDisplay">€0</span>
+                    <span data-i18n="cardExpense">일반카드 지출:</span>
+                    <span class="privacy-amount" id="dailyExpenseDisplay">€0</span>
                 </div>
                 <div class="balance-item crypto">
-                    <span>🪙 가상화폐카드 지출:</span>
-                    <span id="cryptoExpenseDisplay">€0</span>
+                    <span data-i18n="cryptoCardExpense">🪙 가상화폐카드 지출:</span>
+                    <span class="privacy-amount" id="cryptoExpenseDisplay">€0</span>
                 </div>
                 <div class="balance-item total">
-                    <span>통장 남은 금액:</span>
-                    <span id="remainingDisplay">€0</span>
+                    <span data-i18n="remaining">통장 남은 금액:</span>
+                    <span class="privacy-amount" id="remainingDisplay">€0</span>
                 </div>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab(event, 'salary')">💵 월급</button>
-            <button class="tab" onclick="switchTab(event, 'fixed')">📌 고정지출</button>
-            <button class="tab" onclick="switchTab(event, 'daily')">📅 일별지출</button>
-            <button class="tab" onclick="switchTab(event, 'assets')">💎 자산</button>
-            <button class="tab" onclick="switchTab(event, 'stats')">📊 통계</button>
+            <button class="tab active" onclick="switchTab(event, 'salary')" data-i18n="tabSalary">💵 월급</button>
+            <button class="tab" onclick="switchTab(event, 'fixed')" data-i18n="tabFixed">📌 고정지출</button>
+            <button class="tab" onclick="switchTab(event, 'daily')" data-i18n="tabDaily">📅 일별지출</button>
+            <button class="tab" onclick="switchTab(event, 'assets')" data-i18n="tabAssets">💎 자산</button>
+            <button class="tab" onclick="switchTab(event, 'stats')" data-i18n="tabStats">📊 통계</button>
         </div>
 
         <div class="content">
             <!-- 월급 탭 -->
             <div id="salaryTab" class="tab-content active">
                 <div class="data-management">
-                    <h3>📁 데이터 관리</h3>
+                    <h3 data-i18n="dataManagement">📁 데이터 관리</h3>
                     <p style="font-size: 14px; color: #6c757d; margin-bottom: 15px;">
-                        데이터를 파일로 저장하거나 다른 기기에서 가져올 수 있습니다.
+                        <span data-i18n="dataManagementDesc">데이터를 파일로 저장하거나 다른 기기에서 가져올 수 있습니다.</span>
                     </p>
                     <div class="data-buttons">
-                        <button class="btn btn-secondary" onclick="exportData()">💾 내보내기</button>
-                        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 가져오기</button>
+                        <button class="btn btn-secondary" onclick="exportData()" data-i18n="export">💾 내보내기</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()" data-i18n="import">📂 가져오기</button>
                         <input type="file" id="importFile" accept=".json" onchange="importData(event)">
                     </div>
                 </div>
 
                 <div class="salary-input">
-                    <h3>월급 입력</h3>
+                    <h3 data-i18n="salaryInput">월급 입력</h3>
                     <div class="input-row">
                         <div class="input-group">
-                            <label>월 선택</label>
+                            <label data-i18n="selectMonth">월 선택</label>
                             <input type="month" id="salaryMonth">
                         </div>
                         <div class="input-group">
-                            <label>금액 (€)</label>
-                            <input type="number" id="salaryInput" placeholder="월급을 입력하세요">
+                            <label data-i18n="amountEuro">금액 (€)</label>
+                            <input type="number" id="salaryInput" data-i18n-placeholder="enterSalary" placeholder="월급을 입력하세요">
                         </div>
                     </div>
-                    <button class="btn" onclick="setSalary()">저장</button>
+                    <button class="btn" onclick="setSalary()" data-i18n="save">저장</button>
                 </div>
 
                 <div class="list" id="salaryList">
@@ -926,86 +1057,86 @@
                 </div>
 
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; color: #495057; border: 1px solid #e9ecef; margin-top: 20px;">
-                    <h4 style="margin-bottom: 10px; color: #212529;">💡 사용 안내</h4>
-                    <p>매달 다른 월급을 입력할 수 있습니다. 가장 최근 월급을 기준으로 남은 금액이 계산됩니다.</p>
+                    <h4 style="margin-bottom: 10px; color: #212529;" data-i18n="usageGuide">💡 사용 안내</h4>
+                    <p data-i18n="usageGuideDesc">매달 다른 월급을 입력할 수 있습니다. 가장 최근 월급을 기준으로 남은 금액이 계산됩니다.</p>
                 </div>
             </div>
 
             <!-- 고정지출 탭 -->
             <div id="fixedTab" class="tab-content">
                 <div class="image-upload-section">
-                    <h3>📸 사진으로 자동 입력</h3>
+                    <h3 data-i18n="photoAutoInput">📸 사진으로 자동 입력</h3>
                     <p style="font-size: 14px; color: #6c757d; margin-bottom: 15px;">
-                        고정지출 내역이 적힌 사진을 업로드하면 자동으로 인식해서 입력합니다.
+                        <span data-i18n="photoAutoInputDesc">고정지출 내역이 적힌 사진을 업로드하면 자동으로 인식해서 입력합니다.</span>
                     </p>
                     <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageFile').click()">
                         <div>📷</div>
-                        <p style="margin: 10px 0; font-weight: 600;">클릭하거나 이미지를 드래그하세요</p>
-                        <p style="font-size: 14px; color: #6c757d;">PNG, JPG, JPEG 형식 지원</p>
+                        <p style="margin: 10px 0; font-weight: 600;" data-i18n="clickOrDrag">클릭하거나 이미지를 드래그하세요</p>
+                        <p style="font-size: 14px; color: #6c757d;" data-i18n="supportedFormats">PNG, JPG, JPEG 형식 지원</p>
                     </div>
                     <input type="file" id="imageFile" accept="image/*" onchange="handleImageUpload(event)">
                     <img id="previewImage" class="preview-image" style="display: none;">
                     <div class="loading" id="loading">
                         <div class="spinner"></div>
-                        <p>이미지를 분석하고 있습니다...</p>
+                        <p data-i18n="analyzingImage">이미지를 분석하고 있습니다...</p>
                     </div>
                 </div>
 
-                <h2 style="margin-bottom: 20px;">고정지출 추가</h2>
+                <h2 style="margin-bottom: 20px;" data-i18n="addFixedExpense">고정지출 추가</h2>
                 <div class="input-row">
                     <div class="input-group">
-                        <label>항목명</label>
-                        <input type="text" id="fixedName" placeholder="예: 월세, 통신비, 보험료">
+                        <label data-i18n="itemName">항목명</label>
+                        <input type="text" id="fixedName" data-i18n-placeholder="fixedNamePlaceholder" placeholder="예: 월세, 통신비, 보험료">
                     </div>
                     <div class="input-group">
-                        <label>금액 (€)</label>
-                        <input type="number" id="fixedAmount" placeholder="금액 입력">
+                        <label data-i18n="amountEuro">금액 (€)</label>
+                        <input type="number" id="fixedAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력">
                     </div>
                 </div>
-                <button class="btn" onclick="addFixedExpense()">추가</button>
+                <button class="btn" onclick="addFixedExpense()" data-i18n="add">추가</button>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px;">
-                    <h3 style="margin: 0; color: #333;">고정지출 목록</h3>
-                    <p style="font-size: 13px; color: #6c757d; margin: 0;">💡 드래그해서 순서 변경</p>
+                    <h3 style="margin: 0; color: #333;" data-i18n="fixedExpenseList">고정지출 목록</h3>
+                    <p style="font-size: 13px; color: #6c757d; margin: 0;" data-i18n="dragToReorder">💡 드래그해서 순서 변경</p>
                 </div>
                 
                 <div class="list" id="fixedList">
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
-                        <p>아직 고정지출 내역이 없습니다.</p>
+                        <p>${t('noFixedYet')}</p>
                     </div>
                 </div>
             </div>
 
             <!-- 일별지출 탭 -->
             <div id="dailyTab" class="tab-content">
-                <h2 style="margin-bottom: 20px;">일별 지출/수입 추가</h2>
+                <h2 style="margin-bottom: 20px;" data-i18n="addDailyExpense">일별 지출/수입 추가</h2>
                 <div class="input-row">
                     <div class="input-group">
-                        <label>날짜</label>
+                        <label data-i18n="date">날짜</label>
                         <input type="date" id="dailyDate">
                     </div>
                     <div class="input-group">
-                        <label>유형</label>
+                        <label data-i18n="type">유형</label>
                         <select id="transactionType" onchange="updatePaymentMethodOptions()">
-                            <option value="expense">💸 지출</option>
-                            <option value="income">💰 수입</option>
+                            <option value="expense" data-i18n="expense">💸 지출</option>
+                            <option value="income" data-i18n="income">💰 수입</option>
                         </select>
                     </div>
                 </div>
                 <div class="input-row">
                     <div class="input-group">
-                        <label>항목명</label>
-                        <input type="text" id="dailyName" placeholder="예: 식비, 교통비, 빌려준 돈 회수">
+                        <label data-i18n="itemName">항목명</label>
+                        <input type="text" id="dailyName" data-i18n-placeholder="dailyNamePlaceholder" placeholder="예: 식비, 교통비, 빌려준 돈 회수">
                     </div>
                     <div class="input-group">
-                        <label>금액 (€)</label>
-                        <input type="number" id="dailyAmount" placeholder="금액 입력">
+                        <label data-i18n="amountEuro">금액 (€)</label>
+                        <input type="number" id="dailyAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력">
                     </div>
                 </div>
                 <div class="input-row">
                     <div class="input-group">
-                        <label>카테고리</label>
+                        <label data-i18n="category">카테고리</label>
                         <select id="categorySelect">
                             <option value="">🤖 AI 자동 분류</option>
                             <option value="식비">🍽️ 식비</option>
@@ -1019,27 +1150,27 @@
                         </select>
                     </div>
                     <div class="input-group" id="paymentMethodGroupContainer">
-                        <label>결제 수단</label>
+                        <label data-i18n="paymentMethod">결제 수단</label>
                         <select id="paymentMethod">
-                            <option value="regular">💳 일반카드 (통장)</option>
-                            <option value="crypto">🪙 가상화폐카드</option>
+                            <option value="regular" data-i18n="regularCard">💳 일반카드 (통장)</option>
+                            <option value="crypto" data-i18n="cryptoCard">🪙 가상화폐카드</option>
                         </select>
                     </div>
                 </div>
                 <div style="display: none;" id="paymentMethodGroup"></div>
-                <button class="btn" onclick="addDailyExpense()">추가</button>
+                <button class="btn" onclick="addDailyExpense()" data-i18n="add">추가</button>
 
                 <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <div>
-                            <h4 style="margin: 0 0 5px 0; color: #212529;">📁 카테고리 관리</h4>
-                            <p style="margin: 0; font-size: 14px; color: #6c757d;">나만의 카테고리를 추가하세요.</p>
+                            <h4 style="margin: 0 0 5px 0; color: #212529;" data-i18n="categoryManagement">📁 카테고리 관리</h4>
+                            <p style="margin: 0; font-size: 14px; color: #6c757d;" data-i18n="addYourCategory">나만의 카테고리를 추가하세요.</p>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <input type="text" id="newCategoryName" placeholder="카테고리 이름" style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 6px;">
-                        <input type="text" id="newCategoryEmoji" placeholder="이모지" style="width: 80px; padding: 8px; border: 1px solid #dee2e6; border-radius: 6px;">
-                        <button class="btn" onclick="addCustomCategory()">추가</button>
+                        <input type="text" id="newCategoryName" data-i18n-placeholder="categoryName" placeholder="카테고리 이름" style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 6px;">
+                        <input type="text" id="newCategoryEmoji" data-i18n-placeholder="emoji" placeholder="이모지" style="width: 80px; padding: 8px; border: 1px solid #dee2e6; border-radius: 6px;">
+                        <button class="btn" onclick="addCustomCategory()" data-i18n="add">추가</button>
                     </div>
                     <div id="customCategoryList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
                     </div>
@@ -1048,37 +1179,37 @@
                 <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <h4 style="margin: 0 0 5px 0; color: #212529;">🤖 기존 내역 AI 분류</h4>
-                            <p style="margin: 0; font-size: 14px; color: #6c757d;">카테고리가 "기타"인 항목들을 AI가 자동으로 분류합니다.</p>
+                            <h4 style="margin: 0 0 5px 0; color: #212529;" data-i18n="aiBulkClassify">🤖 기존 내역 AI 분류</h4>
+                            <p style="margin: 0; font-size: 14px; color: #6c757d;" data-i18n="aiBulkClassifyDesc">카테고리가 "기타"인 항목들을 AI가 자동으로 분류합니다.</p>
                         </div>
-                        <button class="btn" onclick="bulkClassifyExpenses(event)" style="white-space: nowrap;">일괄 분류</button>
+                        <button class="btn" onclick="bulkClassifyExpenses(event)" style="white-space: nowrap;" data-i18n="bulkClassify">일괄 분류</button>
                     </div>
                 </div>
 
                 <div class="view-toggle">
-                    <button class="active" onclick="switchDailyView('list')">📋 목록</button>
-                    <button onclick="switchDailyView('calendar')">📅 달력</button>
+                    <button class="active" onclick="switchDailyView('list')" data-i18n="listView">📋 목록</button>
+                    <button onclick="switchDailyView('calendar')" data-i18n="calendarView">📅 달력</button>
                 </div>
 
                 <div id="dailyListView">
                     <!-- 월별 총 지출 요약 -->
                     <div class="monthly-summary" style="margin-bottom: 20px;">
-                        <div class="monthly-summary-title">📊 이번 달 총계</div>
+                        <div class="monthly-summary-title" data-i18n="monthlyTotal">📊 이번 달 총계</div>
                         <div class="monthly-summary-items">
                             <div class="monthly-summary-item">
-                                <div class="monthly-summary-label">💳 일반카드 지출</div>
+                                <div class="monthly-summary-label" data-i18n="cardExpenseShort">💳 일반카드 지출</div>
                                 <div class="monthly-summary-value" id="listMonthlyRegularTotal">€0.00</div>
                             </div>
                             <div class="monthly-summary-item">
-                                <div class="monthly-summary-label">🪙 가상화폐카드 지출</div>
+                                <div class="monthly-summary-label" data-i18n="cryptoCardExpenseShort">🪙 가상화폐카드 지출</div>
                                 <div class="monthly-summary-value crypto" id="listMonthlyCryptoTotal">€0.00</div>
                             </div>
                             <div class="monthly-summary-item">
-                                <div class="monthly-summary-label">💰 수입</div>
+                                <div class="monthly-summary-label" data-i18n="incomeLabel">💰 수입</div>
                                 <div class="monthly-summary-value" style="color: #28a745;" id="listMonthlyIncome">€0.00</div>
                             </div>
                             <div class="monthly-summary-item">
-                                <div class="monthly-summary-label">순 지출</div>
+                                <div class="monthly-summary-label" data-i18n="netExpense">순 지출</div>
                                 <div class="monthly-summary-value" id="listMonthlyNet">€0.00</div>
                             </div>
                         </div>
@@ -1095,7 +1226,7 @@
                 <div id="dailyCalendarView" style="display: none;">
                     <div class="calendar-container">
                         <div class="calendar-header">
-                            <h3>📅 지출 달력</h3>
+                            <h3 data-i18n="expenseCalendar">📅 지출 달력</h3>
                             <div class="calendar-nav">
                                 <button onclick="changeMonth(-1)">◀</button>
                                 <span class="calendar-month" id="calendarMonth"></span>
@@ -1105,22 +1236,22 @@
                         
                         <!-- 월별 총 지출 요약 -->
                         <div class="monthly-summary">
-                            <div class="monthly-summary-title">📊 이번 달 총계</div>
+                            <div class="monthly-summary-title" data-i18n="monthlyTotal">📊 이번 달 총계</div>
                             <div class="monthly-summary-items">
                                 <div class="monthly-summary-item">
-                                    <div class="monthly-summary-label">💳 일반카드 지출</div>
+                                    <div class="monthly-summary-label" data-i18n="cardExpenseShort">💳 일반카드 지출</div>
                                     <div class="monthly-summary-value" id="monthlyRegularTotal">€0.00</div>
                                 </div>
                                 <div class="monthly-summary-item">
-                                    <div class="monthly-summary-label">🪙 가상화폐카드 지출</div>
+                                    <div class="monthly-summary-label" data-i18n="cryptoCardExpenseShort">🪙 가상화폐카드 지출</div>
                                     <div class="monthly-summary-value crypto" id="monthlyCryptoTotal">€0.00</div>
                                 </div>
                                 <div class="monthly-summary-item">
-                                    <div class="monthly-summary-label">💰 수입</div>
+                                    <div class="monthly-summary-label" data-i18n="incomeLabel">💰 수입</div>
                                     <div class="monthly-summary-value" style="color: #28a745;" id="monthlyIncome">€0.00</div>
                                 </div>
                                 <div class="monthly-summary-item">
-                                    <div class="monthly-summary-label">순 지출</div>
+                                    <div class="monthly-summary-label" data-i18n="netExpense">순 지출</div>
                                     <div class="monthly-summary-value" id="monthlyNet">€0.00</div>
                                 </div>
                             </div>
@@ -1128,13 +1259,13 @@
 
                         <div class="calendar">
                             <div class="calendar-weekdays">
-                                <div class="calendar-weekday">일</div>
-                                <div class="calendar-weekday">월</div>
-                                <div class="calendar-weekday">화</div>
-                                <div class="calendar-weekday">수</div>
-                                <div class="calendar-weekday">목</div>
-                                <div class="calendar-weekday">금</div>
-                                <div class="calendar-weekday">토</div>
+                                <div class="calendar-weekday" data-i18n="sun">일</div>
+                                <div class="calendar-weekday" data-i18n="mon">월</div>
+                                <div class="calendar-weekday" data-i18n="tue">화</div>
+                                <div class="calendar-weekday" data-i18n="wed">수</div>
+                                <div class="calendar-weekday" data-i18n="thu">목</div>
+                                <div class="calendar-weekday" data-i18n="fri">금</div>
+                                <div class="calendar-weekday" data-i18n="sat">토</div>
                             </div>
                             <div class="calendar-days" id="calendarDays"></div>
                         </div>
@@ -1144,18 +1275,18 @@
 
             <!-- 자산 탭 -->
             <div id="assetsTab" class="tab-content">
-                <h2 style="margin-bottom: 20px;">💎 자산 관리</h2>
+                <h2 style="margin-bottom: 20px;" data-i18n="assetManagement">💎 자산 관리</h2>
                 
                 <!-- 자산 추가 폼 -->
                 <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 15px;">자산 추가/수정</h3>
+                    <h3 style="margin-bottom: 15px;" data-i18n="addEditAsset">자산 추가/수정</h3>
                     <div class="input-row">
                         <div class="input-group">
-                            <label>플랫폼명</label>
-                            <input type="text" id="assetPlatform" placeholder="예: 한국 신한은행, 독일 Deutsche Bank">
+                            <label data-i18n="platformName">플랫폼명</label>
+                            <input type="text" id="assetPlatform" data-i18n-placeholder="platformPlaceholder" placeholder="예: 한국 신한은행, 독일 Deutsche Bank">
                         </div>
                         <div class="input-group">
-                            <label>통화</label>
+                            <label data-i18n="currency">통화</label>
                             <select id="assetCurrency">
                                 <option value="EUR">EUR (€)</option>
                                 <option value="KRW">KRW (₩)</option>
@@ -1167,48 +1298,48 @@
                     </div>
                     <div class="input-row">
                         <div class="input-group">
-                            <label>잔고</label>
-                            <input type="number" id="assetAmount" placeholder="금액 입력" step="0.01">
+                            <label data-i18n="balance">잔고</label>
+                            <input type="number" id="assetAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력" step="0.01">
                         </div>
                         <div class="input-group">
-                            <label>메모 (선택)</label>
-                            <input type="text" id="assetMemo" placeholder="예: 비상금, 투자용">
+                            <label data-i18n="memoOptional">메모 (선택)</label>
+                            <input type="text" id="assetMemo" data-i18n-placeholder="memoPlaceholder" placeholder="예: 비상금, 투자용">
                         </div>
                     </div>
-                    <button class="btn" onclick="addOrUpdateAsset()">추가</button>
+                    <button class="btn" onclick="addOrUpdateAsset()" data-i18n="add">추가</button>
                 </div>
 
                 <!-- 총 자산 요약 -->
                 <div class="monthly-summary" style="margin-bottom: 20px;">
-                    <div class="monthly-summary-title">💰 총 자산 (EUR 환산)</div>
+                    <div class="monthly-summary-title" data-i18n="totalAssetsEUR">💰 총 자산 (EUR 환산)</div>
                     <div style="font-size: 32px; font-weight: bold; color: #212529; margin-top: 10px;" id="totalAssetsEUR">
                         €0.00
                     </div>
                     <div style="margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn" onclick="fetchLiveRates()" style="padding: 8px 16px; font-size: 13px; background: #495057;">🔄 실시간 환율 조회</button>
-                        <span id="rateStatus" style="font-size: 13px; color: #6c757d;">📌 기본 환율 사용 중</span>
+                        <button class="btn" onclick="fetchLiveRates()" style="padding: 8px 16px; font-size: 13px; background: #495057;" data-i18n="fetchLiveRates">🔄 실시간 환율 조회</button>
+                        <span id="rateStatus" style="font-size: 13px; color: #6c757d;" data-i18n="defaultRatesUsed">📌 기본 환율 사용 중</span>
                     </div>
                 </div>
 
                 <!-- 자산 목록 -->
                 <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
-                    <h3 style="margin-bottom: 15px;">자산 목록</h3>
+                    <h3 style="margin-bottom: 15px;" data-i18n="assetList">자산 목록</h3>
                     <div id="assetsList"></div>
                 </div>
             </div>
 
             <!-- 통계 탭 -->
             <div id="statsTab" class="tab-content">
-                <h2 style="margin-bottom: 20px;">📊 카테고리별 지출 분석</h2>
+                <h2 style="margin-bottom: 20px;" data-i18n="categoryAnalysis">📊 카테고리별 지출 분석</h2>
                 
                 <div class="monthly-summary" style="margin-bottom: 20px;">
-                    <div class="monthly-summary-title">이번 달 카테고리별 지출</div>
+                    <div class="monthly-summary-title" data-i18n="monthlyCategoryExpense">이번 달 카테고리별 지출</div>
                     <div id="categoryStats"></div>
                 </div>
 
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; color: #495057; border: 1px solid #e9ecef;">
-                    <h4 style="margin-bottom: 10px; color: #212529;">💡 카테고리 안내</h4>
-                    <p>AI가 자동으로 지출 항목을 분류합니다. 수정이 필요한 경우 일별지출 탭에서 각 항목을 수정할 수 있습니다.</p>
+                    <h4 style="margin-bottom: 10px; color: #212529;" data-i18n="categoryGuide">💡 카테고리 안내</h4>
+                    <p data-i18n="categoryGuideDesc">AI가 자동으로 지출 항목을 분류합니다. 수정이 필요한 경우 일별지출 탭에서 각 항목을 수정할 수 있습니다.</p>
                 </div>
             </div>
         </div>
@@ -1230,31 +1361,31 @@
     <div class="modal" id="editModal" onclick="closeEditModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3>지출/수입 수정</h3>
+                <h3 data-i18n="editTransaction">지출/수입 수정</h3>
                 <button class="modal-close" onclick="closeEditModal()">&times;</button>
             </div>
             <div class="edit-form">
                 <div class="input-group">
-                    <label>유형</label>
+                    <label data-i18n="type">유형</label>
                     <select id="editTransactionType" onchange="updateEditPaymentMethodOptions()">
-                        <option value="expense">💸 지출</option>
-                        <option value="income">💰 수입</option>
+                        <option value="expense" data-i18n="expense">💸 지출</option>
+                        <option value="income" data-i18n="income">💰 수입</option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>날짜</label>
+                    <label data-i18n="date">날짜</label>
                     <input type="date" id="editDate">
                 </div>
                 <div class="input-group">
-                    <label>항목명</label>
-                    <input type="text" id="editName" placeholder="항목명">
+                    <label data-i18n="itemName">항목명</label>
+                    <input type="text" id="editName" data-i18n-placeholder="itemName" placeholder="항목명">
                 </div>
                 <div class="input-group">
-                    <label>금액 (€)</label>
-                    <input type="number" id="editAmount" placeholder="금액">
+                    <label data-i18n="amountEuro">금액 (€)</label>
+                    <input type="number" id="editAmount" data-i18n-placeholder="amount" placeholder="금액">
                 </div>
                 <div class="input-group">
-                    <label>카테고리</label>
+                    <label data-i18n="category">카테고리</label>
                     <div style="display: flex; gap: 10px;">
                         <select id="editCategory" style="flex: 1;">
                             <option value="식비">🍽️ 식비</option>
@@ -1271,22 +1402,530 @@
                     </div>
                 </div>
                 <div class="input-group" id="editPaymentMethodGroup">
-                    <label>결제 수단</label>
+                    <label data-i18n="paymentMethod">결제 수단</label>
                     <select id="editPaymentMethod">
-                        <option value="regular">💳 일반카드 (통장)</option>
-                        <option value="crypto">🪙 가상화폐카드</option>
+                        <option value="regular" data-i18n="regularCard">💳 일반카드 (통장)</option>
+                        <option value="crypto" data-i18n="cryptoCard">🪙 가상화폐카드</option>
                     </select>
                 </div>
             </div>
             <div class="edit-actions">
-                <button class="btn btn-cancel" onclick="closeEditModal()">취소</button>
-                <button class="btn" onclick="saveEdit()">저장</button>
+                <button class="btn btn-cancel" onclick="closeEditModal()" data-i18n="cancel">취소</button>
+                <button class="btn" onclick="saveEdit()" data-i18n="save">저장</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 데이터 저장소
+        // ===== 다국어 지원 (i18n) =====
+        let currentLang = localStorage.getItem('budgetAppLang') || 'ko';
+
+        const translations = {
+            ko: {
+                title: '💰 나의 가계부',
+                totalAssetLabel: '총 자산',
+                monthlySpending: '이번 달 지출',
+                salary: '월급:', otherIncome: '+ 기타수입:', fixedExpense: '고정지출:',
+                cardExpense: '일반카드 지출:', cryptoCardExpense: '🪙 가상화폐카드 지출:',
+                remaining: '통장 남은 금액:',
+                tabSalary: '💵 월급', tabFixed: '📌 고정지출', tabDaily: '📅 일별지출',
+                tabAssets: '💎 자산', tabStats: '📊 통계',
+                dataManagement: '📁 데이터 관리',
+                dataManagementDesc: '데이터를 파일로 저장하거나 다른 기기에서 가져올 수 있습니다.',
+                export: '💾 내보내기', import: '📂 가져오기',
+                salaryInput: '월급 입력', selectMonth: '월 선택',
+                amountEuro: '금액 (€)', enterSalary: '월급을 입력하세요',
+                save: '저장', add: '추가', cancel: '취소',
+                usageGuide: '💡 사용 안내',
+                usageGuideDesc: '매달 다른 월급을 입력할 수 있습니다. 가장 최근 월급을 기준으로 남은 금액이 계산됩니다.',
+                photoAutoInput: '📸 사진으로 자동 입력',
+                photoAutoInputDesc: '고정지출 내역이 적힌 사진을 업로드하면 자동으로 인식해서 입력합니다.',
+                clickOrDrag: '클릭하거나 이미지를 드래그하세요',
+                supportedFormats: 'PNG, JPG, JPEG 형식 지원',
+                analyzingImage: '이미지를 분석하고 있습니다...',
+                addFixedExpense: '고정지출 추가', itemName: '항목명',
+                fixedNamePlaceholder: '예: 월세, 통신비, 보험료',
+                enterAmount: '금액 입력', fixedExpenseList: '고정지출 목록',
+                dragToReorder: '💡 드래그해서 순서 변경',
+                addDailyExpense: '일별 지출/수입 추가', date: '날짜', type: '유형',
+                expense: '💸 지출', income: '💰 수입',
+                dailyNamePlaceholder: '예: 식비, 교통비, 빌려준 돈 회수',
+                category: '카테고리', paymentMethod: '결제 수단',
+                regularCard: '💳 일반카드 (통장)', cryptoCard: '🪙 가상화폐카드',
+                categoryManagement: '📁 카테고리 관리',
+                addYourCategory: '나만의 카테고리를 추가하세요.',
+                categoryName: '카테고리 이름', emoji: '이모지',
+                aiBulkClassify: '🤖 기존 내역 AI 분류',
+                aiBulkClassifyDesc: '카테고리가 "기타"인 항목들을 AI가 자동으로 분류합니다.',
+                bulkClassify: '일괄 분류',
+                listView: '📋 목록', calendarView: '📅 달력',
+                monthlyTotal: '📊 이번 달 총계',
+                cardExpenseShort: '💳 일반카드 지출', cryptoCardExpenseShort: '🪙 가상화폐카드 지출',
+                incomeLabel: '💰 수입', netExpense: '순 지출',
+                expenseCalendar: '📅 지출 달력',
+                sun: '일', mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토',
+                assetManagement: '💎 자산 관리', addEditAsset: '자산 추가/수정',
+                platformName: '플랫폼명', platformPlaceholder: '예: 한국 신한은행, 독일 Deutsche Bank',
+                currency: '통화', balance: '잔고',
+                memoOptional: '메모 (선택)', memoPlaceholder: '예: 비상금, 투자용',
+                totalAssetsEUR: '💰 총 자산 (EUR 환산)',
+                fetchLiveRates: '🔄 실시간 환율 조회',
+                defaultRatesUsed: '📌 기본 환율 사용 중',
+                assetList: '자산 목록',
+                categoryAnalysis: '📊 카테고리별 지출 분석',
+                monthlyCategoryExpense: '이번 달 카테고리별 지출',
+                categoryGuide: '💡 카테고리 안내',
+                categoryGuideDesc: 'AI가 자동으로 지출 항목을 분류합니다. 수정이 필요한 경우 일별지출 탭에서 각 항목을 수정할 수 있습니다.',
+                editTransaction: '지출/수입 수정', amount: '금액',
+                // Dynamic strings
+                monthlySalaryHistory: '월별 월급 내역', delete: '삭제', edit: '수정',
+                noSalaryYet: '아직 월급 내역이 없습니다.',
+                noFixedYet: '아직 고정지출 내역이 없습니다.',
+                noDailyYet: '아직 일별지출 내역이 없습니다.',
+                noDailyThisMonth: '이번 달 일별지출 내역이 없습니다.',
+                noAssetsYet: '등록된 자산이 없습니다.',
+                noExpenseThisMonth: '이번 달 지출 내역이 없습니다.',
+                noCategoryExpense: '해당 카테고리에 지출 내역이 없습니다.',
+                enterMonthAndAmount: '월과 금액을 모두 입력해주세요.',
+                salarySaved: '월급이 저장되었습니다!',
+                enterNameAndAmount: '항목명과 금액을 모두 입력해주세요.',
+                enterAllFields: '날짜, 항목명, 금액을 모두 입력해주세요.',
+                enterAllFieldsEdit: '모든 필드를 입력해주세요.',
+                edited: '수정되었습니다!',
+                aiClassifying: 'AI 분류 중...',
+                classifying: '분류 중...',
+                processing: '처리 중...',
+                enterCategoryName: '카테고리 이름을 입력해주세요.',
+                categoryExists: '이미 존재하는 카테고리입니다.',
+                categoryAdded: '카테고리가 추가되었습니다!',
+                deleteCategoryConfirm: '카테고리를 삭제하시겠습니까?',
+                noCustomCategories: '추가한 카테고리가 없습니다.',
+                nothingToClassify: '분류할 항목이 없습니다. 모든 항목이 이미 분류되어 있습니다.',
+                bulkClassifyStart: '개의 항목을 AI로 분류합니다. 잠시만 기다려주세요.',
+                classifyComplete: '개 항목의 분류가 완료되었습니다!',
+                classifyFailed: '개 항목 분류 실패',
+                classifyError: '분류 중 오류가 발생했습니다: ',
+                classifiedAs: '카테고리로 분류되었습니다.',
+                enterItemNameFirst: '항목명을 먼저 입력해주세요.',
+                exportDone: '데이터를 파일로 내보냈습니다!',
+                invalidFile: '올바른 가계부 데이터 파일이 아닙니다.',
+                mergeConfirm: '기존 데이터가 있습니다. 기존 데이터를 유지하고 새 데이터를 추가하시겠습니까?\n\n확인: 데이터 병합\n취소: 기존 데이터 삭제 후 가져오기',
+                importDone: '데이터를 성공적으로 가져왔습니다!',
+                importError: '파일을 읽는 중 오류가 발생했습니다: ',
+                deleteAssetConfirm: '이 자산을 삭제하시겠습니까?',
+                imageOnly: '이미지 파일만 업로드할 수 있습니다.',
+                fixedItemsAdded: '개의 고정지출 항목이 추가되었습니다!',
+                noValidExpense: '유효한 지출 내역을 찾을 수 없습니다.',
+                imageAnalysisFailed: '이미지에서 지출 내역을 인식하지 못했습니다. 수동으로 입력해주세요.',
+                imageAnalysisError: '이미지 분석 중 오류가 발생했습니다: ',
+                aiAutoClassify: '🤖 AI 자동 분류',
+                yearMonth: (y, m) => `${y}년 ${m}월`,
+                dateDisplay: (y, m, d, wd) => `${y}년 ${m}월 ${d}일 (${wd})`,
+                itemCount: (n) => `${n}건`,
+                subtotal: '소계',
+                totalExpense: '총 지출',
+                regularCardLabel: '💳 일반카드', cryptoCardLabel: '🪙 가상화폐카드',
+                incomeSection: '💰 수입',
+                regularBadge: '💳 일반', cryptoBadge: '🪙 가상화폐', incomeBadge: '💰 수입',
+                liveTag: '(실시간)',
+                rateLoading: '⏳ 환율 조회 중...',
+                rateError: '❌ 조회 실패 (기본값 사용 중)',
+                rateUpdated: '업데이트',
+                // Category names
+                catFood: '식비', catTransport: '교통비', catShopping: '쇼핑',
+                catEntertainment: '문화생활', catSubscription: '구독료',
+                catMedical: '의료', catEducation: '교육', catOther: '기타', catIncome: '수입',
+                enterPlatformAndBalance: '플랫폼명과 잔고를 입력해주세요.',
+                weekdays: ['일', '월', '화', '수', '목', '금', '토'],
+                monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+            },
+            en: {
+                title: '💰 My Budget',
+                totalAssetLabel: 'Total Assets',
+                monthlySpending: 'Monthly Spending',
+                salary: 'Salary:', otherIncome: '+ Other Income:', fixedExpense: 'Fixed Expenses:',
+                cardExpense: 'Card Expenses:', cryptoCardExpense: '🪙 Crypto Card Expenses:',
+                remaining: 'Remaining Balance:',
+                tabSalary: '💵 Salary', tabFixed: '📌 Fixed', tabDaily: '📅 Daily',
+                tabAssets: '💎 Assets', tabStats: '📊 Stats',
+                dataManagement: '📁 Data Management',
+                dataManagementDesc: 'Save data to file or import from another device.',
+                export: '💾 Export', import: '📂 Import',
+                salaryInput: 'Enter Salary', selectMonth: 'Select Month',
+                amountEuro: 'Amount (€)', enterSalary: 'Enter your salary',
+                save: 'Save', add: 'Add', cancel: 'Cancel',
+                usageGuide: '💡 Usage Guide',
+                usageGuideDesc: 'You can enter different salaries each month. The remaining balance is calculated based on the most recent salary.',
+                photoAutoInput: '📸 Auto Input from Photo',
+                photoAutoInputDesc: 'Upload a photo of your fixed expenses to automatically recognize and input them.',
+                clickOrDrag: 'Click or drag an image here',
+                supportedFormats: 'PNG, JPG, JPEG supported',
+                analyzingImage: 'Analyzing image...',
+                addFixedExpense: 'Add Fixed Expense', itemName: 'Item Name',
+                fixedNamePlaceholder: 'e.g. Rent, Phone, Insurance',
+                enterAmount: 'Enter amount', fixedExpenseList: 'Fixed Expenses List',
+                dragToReorder: '💡 Drag to reorder',
+                addDailyExpense: 'Add Daily Expense/Income', date: 'Date', type: 'Type',
+                expense: '💸 Expense', income: '💰 Income',
+                dailyNamePlaceholder: 'e.g. Food, Transport, Refund',
+                category: 'Category', paymentMethod: 'Payment Method',
+                regularCard: '💳 Regular Card (Bank)', cryptoCard: '🪙 Crypto Card',
+                categoryManagement: '📁 Category Management',
+                addYourCategory: 'Add your own categories.',
+                categoryName: 'Category name', emoji: 'Emoji',
+                aiBulkClassify: '🤖 AI Bulk Classification',
+                aiBulkClassifyDesc: 'AI will automatically classify items categorized as "Other".',
+                bulkClassify: 'Bulk Classify',
+                listView: '📋 List', calendarView: '📅 Calendar',
+                monthlyTotal: '📊 Monthly Total',
+                cardExpenseShort: '💳 Card Expenses', cryptoCardExpenseShort: '🪙 Crypto Expenses',
+                incomeLabel: '💰 Income', netExpense: 'Net Expense',
+                expenseCalendar: '📅 Expense Calendar',
+                sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat',
+                assetManagement: '💎 Asset Management', addEditAsset: 'Add/Edit Asset',
+                platformName: 'Platform', platformPlaceholder: 'e.g. Chase Bank, Coinbase',
+                currency: 'Currency', balance: 'Balance',
+                memoOptional: 'Memo (optional)', memoPlaceholder: 'e.g. Emergency fund, Investment',
+                totalAssetsEUR: '💰 Total Assets (EUR)',
+                fetchLiveRates: '🔄 Fetch Live Rates',
+                defaultRatesUsed: '📌 Using default rates',
+                assetList: 'Asset List',
+                categoryAnalysis: '📊 Category Expense Analysis',
+                monthlyCategoryExpense: 'Monthly Category Expenses',
+                categoryGuide: '💡 Category Guide',
+                categoryGuideDesc: 'AI automatically classifies expense items. You can edit categories in the Daily tab.',
+                editTransaction: 'Edit Transaction', amount: 'Amount',
+                monthlySalaryHistory: 'Monthly Salary History', delete: 'Delete', edit: 'Edit',
+                noSalaryYet: 'No salary records yet.',
+                noFixedYet: 'No fixed expenses yet.',
+                noDailyYet: 'No daily expenses yet.',
+                noDailyThisMonth: 'No expenses this month.',
+                noAssetsYet: 'No assets registered.',
+                noExpenseThisMonth: 'No expenses this month.',
+                noCategoryExpense: 'No expenses in this category.',
+                enterMonthAndAmount: 'Please enter both month and amount.',
+                salarySaved: 'Salary saved!',
+                enterNameAndAmount: 'Please enter both item name and amount.',
+                enterAllFields: 'Please enter date, item name, and amount.',
+                enterAllFieldsEdit: 'Please fill in all fields.',
+                edited: 'Saved!',
+                aiClassifying: 'AI classifying...',
+                classifying: 'Classifying...',
+                processing: 'Processing...',
+                enterCategoryName: 'Please enter a category name.',
+                categoryExists: 'This category already exists.',
+                categoryAdded: ' category has been added!',
+                deleteCategoryConfirm: 'Delete this category?',
+                noCustomCategories: 'No custom categories added.',
+                nothingToClassify: 'Nothing to classify. All items are already classified.',
+                bulkClassifyStart: ' items will be classified by AI. Please wait.',
+                classifyComplete: ' items have been classified!',
+                classifyFailed: ' items failed to classify',
+                classifyError: 'Error during classification: ',
+                classifiedAs: ' category assigned.',
+                enterItemNameFirst: 'Please enter an item name first.',
+                exportDone: 'Data exported successfully!',
+                invalidFile: 'This is not a valid budget data file.',
+                mergeConfirm: 'Existing data found. Keep existing data and add new data?\n\nOK: Merge data\nCancel: Replace with imported data',
+                importDone: 'Data imported successfully!',
+                importError: 'Error reading file: ',
+                deleteAssetConfirm: 'Delete this asset?',
+                imageOnly: 'Only image files can be uploaded.',
+                fixedItemsAdded: ' fixed expense items have been added!',
+                noValidExpense: 'No valid expense items found.',
+                imageAnalysisFailed: 'Could not recognize expenses from the image. Please enter manually.',
+                imageAnalysisError: 'Error analyzing image: ',
+                aiAutoClassify: '🤖 AI Auto-classify',
+                yearMonth: (y, m) => `${getMonthName(m, 'en')} ${y}`,
+                dateDisplay: (y, m, d, wd) => `${wd}, ${getMonthName(m, 'en')} ${d}, ${y}`,
+                itemCount: (n) => `${n} items`,
+                subtotal: 'Subtotal',
+                totalExpense: 'Total Expense',
+                regularCardLabel: '💳 Regular Card', cryptoCardLabel: '🪙 Crypto Card',
+                incomeSection: '💰 Income',
+                regularBadge: '💳 Regular', cryptoBadge: '🪙 Crypto', incomeBadge: '💰 Income',
+                liveTag: '(Live)',
+                rateLoading: '⏳ Fetching rates...',
+                rateError: '❌ Failed (using defaults)',
+                rateUpdated: 'Updated',
+                catFood: 'Food', catTransport: 'Transport', catShopping: 'Shopping',
+                catEntertainment: 'Entertainment', catSubscription: 'Subscription',
+                catMedical: 'Medical', catEducation: 'Education', catOther: 'Other', catIncome: 'Income',
+                enterPlatformAndBalance: 'Please enter platform name and balance.',
+                weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                monthNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            },
+            de: {
+                title: '💰 Mein Haushaltsbuch',
+                totalAssetLabel: 'Gesamtvermögen',
+                monthlySpending: 'Monatsausgaben',
+                salary: 'Gehalt:', otherIncome: '+ Sonstiges Einkommen:', fixedExpense: 'Fixkosten:',
+                cardExpense: 'Kartenausgaben:', cryptoCardExpense: '🪙 Krypto-Karte:',
+                remaining: 'Restbetrag:',
+                tabSalary: '💵 Gehalt', tabFixed: '📌 Fixkosten', tabDaily: '📅 Täglich',
+                tabAssets: '💎 Vermögen', tabStats: '📊 Statistik',
+                dataManagement: '📁 Datenverwaltung',
+                dataManagementDesc: 'Daten als Datei speichern oder von einem anderen Gerät importieren.',
+                export: '💾 Exportieren', import: '📂 Importieren',
+                salaryInput: 'Gehalt eingeben', selectMonth: 'Monat wählen',
+                amountEuro: 'Betrag (€)', enterSalary: 'Gehalt eingeben',
+                save: 'Speichern', add: 'Hinzufügen', cancel: 'Abbrechen',
+                usageGuide: '💡 Anleitung',
+                usageGuideDesc: 'Sie können jeden Monat ein anderes Gehalt eingeben. Der Restbetrag wird anhand des aktuellen Gehalts berechnet.',
+                photoAutoInput: '📸 Automatische Eingabe per Foto',
+                photoAutoInputDesc: 'Laden Sie ein Foto Ihrer Fixkosten hoch, um diese automatisch zu erkennen.',
+                clickOrDrag: 'Klicken oder Bild hierher ziehen',
+                supportedFormats: 'PNG, JPG, JPEG unterstützt',
+                analyzingImage: 'Bild wird analysiert...',
+                addFixedExpense: 'Fixkosten hinzufügen', itemName: 'Bezeichnung',
+                fixedNamePlaceholder: 'z.B. Miete, Telefon, Versicherung',
+                enterAmount: 'Betrag eingeben', fixedExpenseList: 'Fixkosten-Liste',
+                dragToReorder: '💡 Zum Sortieren ziehen',
+                addDailyExpense: 'Tägliche Ausgabe/Einnahme', date: 'Datum', type: 'Typ',
+                expense: '💸 Ausgabe', income: '💰 Einnahme',
+                dailyNamePlaceholder: 'z.B. Essen, Transport, Erstattung',
+                category: 'Kategorie', paymentMethod: 'Zahlungsmittel',
+                regularCard: '💳 Bankkarte', cryptoCard: '🪙 Krypto-Karte',
+                categoryManagement: '📁 Kategorieverwaltung',
+                addYourCategory: 'Eigene Kategorien hinzufügen.',
+                categoryName: 'Kategoriename', emoji: 'Emoji',
+                aiBulkClassify: '🤖 KI-Massenklassifizierung',
+                aiBulkClassifyDesc: 'KI klassifiziert automatisch Einträge mit Kategorie "Sonstiges".',
+                bulkClassify: 'Alle klassifizieren',
+                listView: '📋 Liste', calendarView: '📅 Kalender',
+                monthlyTotal: '📊 Monatssumme',
+                cardExpenseShort: '💳 Kartenausgaben', cryptoCardExpenseShort: '🪙 Krypto-Ausgaben',
+                incomeLabel: '💰 Einnahmen', netExpense: 'Nettoausgaben',
+                expenseCalendar: '📅 Ausgabenkalender',
+                sun: 'So', mon: 'Mo', tue: 'Di', wed: 'Mi', thu: 'Do', fri: 'Fr', sat: 'Sa',
+                assetManagement: '💎 Vermögensverwaltung', addEditAsset: 'Vermögen hinzufügen/bearbeiten',
+                platformName: 'Plattform', platformPlaceholder: 'z.B. Deutsche Bank, Coinbase',
+                currency: 'Währung', balance: 'Kontostand',
+                memoOptional: 'Notiz (optional)', memoPlaceholder: 'z.B. Notgroschen, Investment',
+                totalAssetsEUR: '💰 Gesamtvermögen (EUR)',
+                fetchLiveRates: '🔄 Live-Kurse abrufen',
+                defaultRatesUsed: '📌 Standardkurse verwendet',
+                assetList: 'Vermögensliste',
+                categoryAnalysis: '📊 Ausgabenanalyse nach Kategorie',
+                monthlyCategoryExpense: 'Monatliche Kategorieausgaben',
+                categoryGuide: '💡 Kategorie-Info',
+                categoryGuideDesc: 'KI klassifiziert Ausgaben automatisch. Kategorien können im Tab "Täglich" bearbeitet werden.',
+                editTransaction: 'Transaktion bearbeiten', amount: 'Betrag',
+                monthlySalaryHistory: 'Monatliche Gehaltsübersicht', delete: 'Löschen', edit: 'Bearb.',
+                noSalaryYet: 'Noch keine Gehaltseinträge.',
+                noFixedYet: 'Noch keine Fixkosten.',
+                noDailyYet: 'Noch keine täglichen Ausgaben.',
+                noDailyThisMonth: 'Keine Ausgaben in diesem Monat.',
+                noAssetsYet: 'Kein Vermögen registriert.',
+                noExpenseThisMonth: 'Keine Ausgaben in diesem Monat.',
+                noCategoryExpense: 'Keine Ausgaben in dieser Kategorie.',
+                enterMonthAndAmount: 'Bitte Monat und Betrag eingeben.',
+                salarySaved: 'Gehalt gespeichert!',
+                enterNameAndAmount: 'Bitte Bezeichnung und Betrag eingeben.',
+                enterAllFields: 'Bitte Datum, Bezeichnung und Betrag eingeben.',
+                enterAllFieldsEdit: 'Bitte alle Felder ausfüllen.',
+                edited: 'Gespeichert!',
+                aiClassifying: 'KI klassifiziert...',
+                classifying: 'Klassifizierung...',
+                processing: 'Verarbeitung...',
+                enterCategoryName: 'Bitte Kategorienamen eingeben.',
+                categoryExists: 'Diese Kategorie existiert bereits.',
+                categoryAdded: ' Kategorie wurde hinzugefügt!',
+                deleteCategoryConfirm: 'Diese Kategorie löschen?',
+                noCustomCategories: 'Keine eigenen Kategorien.',
+                nothingToClassify: 'Nichts zu klassifizieren. Alle Einträge sind bereits klassifiziert.',
+                bulkClassifyStart: ' Einträge werden per KI klassifiziert. Bitte warten.',
+                classifyComplete: ' Einträge wurden klassifiziert!',
+                classifyFailed: ' Einträge konnten nicht klassifiziert werden',
+                classifyError: 'Fehler bei der Klassifizierung: ',
+                classifiedAs: ' Kategorie zugewiesen.',
+                enterItemNameFirst: 'Bitte zuerst Bezeichnung eingeben.',
+                exportDone: 'Daten erfolgreich exportiert!',
+                invalidFile: 'Keine gültige Haushaltsbuch-Datei.',
+                mergeConfirm: 'Vorhandene Daten gefunden. Bestehende Daten behalten und neue hinzufügen?\n\nOK: Daten zusammenführen\nAbbrechen: Mit importierten Daten ersetzen',
+                importDone: 'Daten erfolgreich importiert!',
+                importError: 'Fehler beim Lesen der Datei: ',
+                deleteAssetConfirm: 'Dieses Vermögen löschen?',
+                imageOnly: 'Nur Bilddateien können hochgeladen werden.',
+                fixedItemsAdded: ' Fixkosten-Einträge wurden hinzugefügt!',
+                noValidExpense: 'Keine gültigen Ausgabeneinträge gefunden.',
+                imageAnalysisFailed: 'Ausgaben im Bild nicht erkannt. Bitte manuell eingeben.',
+                imageAnalysisError: 'Fehler bei der Bildanalyse: ',
+                aiAutoClassify: '🤖 KI-Automatik',
+                yearMonth: (y, m) => `${getMonthName(m, 'de')} ${y}`,
+                dateDisplay: (y, m, d, wd) => `${wd}, ${d}. ${getMonthName(m, 'de')} ${y}`,
+                itemCount: (n) => `${n} Eintr.`,
+                subtotal: 'Zwischensumme',
+                totalExpense: 'Gesamtausgaben',
+                regularCardLabel: '💳 Bankkarte', cryptoCardLabel: '🪙 Krypto-Karte',
+                incomeSection: '💰 Einnahmen',
+                regularBadge: '💳 Karte', cryptoBadge: '🪙 Krypto', incomeBadge: '💰 Einnahme',
+                liveTag: '(Live)',
+                rateLoading: '⏳ Kurse werden abgerufen...',
+                rateError: '❌ Fehler (Standardwerte)',
+                rateUpdated: 'Aktualisiert',
+                catFood: 'Essen', catTransport: 'Transport', catShopping: 'Einkaufen',
+                catEntertainment: 'Unterhaltung', catSubscription: 'Abos',
+                catMedical: 'Gesundheit', catEducation: 'Bildung', catOther: 'Sonstiges', catIncome: 'Einnahme',
+                enterPlatformAndBalance: 'Bitte Plattform und Kontostand eingeben.',
+                weekdays: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+                monthNames: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+            }
+        };
+
+        // Helper for month names
+        function getMonthName(month, lang) {
+            const names = {
+                en: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+                de: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+                ko: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']
+            };
+            return (names[lang] || names['en'])[month - 1];
+        }
+
+        // Translation function
+        function t(key) {
+            return translations[currentLang]?.[key] || translations['ko'][key] || key;
+        }
+
+        // Apply language to all data-i18n elements
+        function applyLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang]?.[key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[currentLang]?.[key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+            document.documentElement.lang = currentLang === 'ko' ? 'ko' : currentLang === 'de' ? 'de' : 'en';
+            document.title = t('title').replace('💰 ', '');
+        }
+
+        // Change language
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('budgetAppLang', lang);
+            applyLanguage();
+            // Re-render dynamic content
+            updateViewMonthDisplay();
+            updateDisplay();
+            renderSalaryList();
+            renderFixedList();
+            renderDailyList();
+            renderAssetsList();
+            updateAllCategorySelects();
+            renderCustomCategoryList();
+            if (currentView === 'calendar') renderCalendar();
+            // Update rate status
+            if (ratesLastUpdated) {
+                updateRateStatusUI('success');
+            }
+            // Re-apply privacy after re-render
+            applyPrivacy();
+        }
+
+        // Category name translation helper
+        function getCategoryDisplayName(internalName) {
+            const map = {
+                '식비': 'catFood', '교통비': 'catTransport', '쇼핑': 'catShopping',
+                '문화생활': 'catEntertainment', '구독료': 'catSubscription',
+                '의료': 'catMedical', '교육': 'catEducation', '기타': 'catOther', '수입': 'catIncome'
+            };
+            const key = map[internalName];
+            return key ? t(key) : internalName;
+        }
+
+        // ===== 프라이버시 토글 =====
+        let privacyMode = localStorage.getItem('budgetPrivacy') === 'true';
+        const HIDDEN_TEXT = '••••••';
+
+        function togglePrivacy() {
+            privacyMode = !privacyMode;
+            localStorage.setItem('budgetPrivacy', privacyMode);
+            applyPrivacy();
+        }
+
+        function applyPrivacy() {
+            const btn = document.getElementById('privacyBtn');
+            if (btn) {
+                btn.textContent = privacyMode ? '🙈' : '👁';
+            }
+
+            // Hide/show all amounts with class privacy-amount
+            document.querySelectorAll('.privacy-amount').forEach(el => {
+                if (privacyMode) {
+                    if (!el.dataset.realValue) {
+                        el.dataset.realValue = el.textContent;
+                    }
+                    el.textContent = HIDDEN_TEXT;
+                    el.classList.add('amount-hidden');
+                } else {
+                    if (el.dataset.realValue) {
+                        el.textContent = el.dataset.realValue;
+                    }
+                    el.classList.remove('amount-hidden');
+                }
+            });
+
+            // Hero section
+            ['heroTotalAssets', 'heroRemaining', 'heroMonthlySpent'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (privacyMode) {
+                    if (!el.dataset.realValue) el.dataset.realValue = el.textContent;
+                    el.textContent = HIDDEN_TEXT;
+                    el.classList.add('amount-hidden');
+                } else {
+                    if (el.dataset.realValue) el.textContent = el.dataset.realValue;
+                    el.classList.remove('amount-hidden');
+                }
+            });
+        }
+
+        // Helper: set text and respect privacy
+        function setAmountText(el, text) {
+            if (!el) return;
+            el.dataset.realValue = text;
+            if (privacyMode) {
+                el.textContent = HIDDEN_TEXT;
+                el.classList.add('amount-hidden');
+            } else {
+                el.textContent = text;
+                el.classList.remove('amount-hidden');
+            }
+        }
+
+        // Update hero total assets section
+        function updateHeroAssets() {
+            // Calculate total assets in EUR
+            let totalAssetsEUR = 0;
+            assets.forEach(asset => {
+                totalAssetsEUR += asset.amount * exchangeRates[asset.currency];
+            });
+
+            const heroEl = document.getElementById('heroTotalAssets');
+            const subEl = document.getElementById('heroAssetsSub');
+
+            setAmountText(heroEl, formatCurrency(totalAssetsEUR));
+
+            if (subEl) {
+                if (ratesLastUpdated && assets.length > 0) {
+                    const timeStr = ratesLastUpdated.toLocaleTimeString(currentLang === 'ko' ? 'ko-KR' : currentLang === 'de' ? 'de-DE' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+                    subEl.textContent = `📡 ${t('rateUpdated')} ${timeStr}`;
+                } else if (assets.length > 0) {
+                    subEl.textContent = t('defaultRatesUsed');
+                } else {
+                    subEl.textContent = '';
+                }
+            }
+        }
+
+        // ===== 데이터 저장소 =====
         let salaries = []; // 월별 월급 배열로 변경
         let fixedExpenses = [];
         let dailyExpenses = [];
@@ -1366,18 +2005,18 @@
             if (!statusEl) return;
 
             if (status === 'loading') {
-                statusEl.innerHTML = '<span style="color: #6c757d;">⏳ 환율 조회 중...</span>';
+                statusEl.innerHTML = `<span style="color: #6c757d;">${t('rateLoading')}</span>`;
             } else if (status === 'success') {
                 const timeStr = ratesLastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
                 const krwRate = (1 / exchangeRates['KRW']).toFixed(0);
-                statusEl.innerHTML = `<span style="color: #28a745;">✅ ${timeStr} 업데이트</span><br>` +
+                statusEl.innerHTML = `<span style="color: #28a745;">✅ ${timeStr} ${t('rateUpdated')}</span><br>` +
                     `<span style="color: #6c757d; font-size: 12px;">` +
                     `1 USD = €${exchangeRates['USD'].toFixed(4)} · ` +
                     `1,000 KRW = €${(exchangeRates['KRW'] * 1000).toFixed(4)} · ` +
                     `1 BTC = €${exchangeRates['BTC'].toLocaleString()} · ` +
                     `1 ETH = €${exchangeRates['ETH'].toLocaleString()}</span>`;
             } else if (status === 'error') {
-                statusEl.innerHTML = '<span style="color: #dc3545;">❌ 조회 실패 (기본값 사용 중)</span>';
+                statusEl.innerHTML = `<span style="color: #dc3545;">${t('rateError')}</span>`;
             }
         }
 
@@ -1398,7 +2037,7 @@
             const memo = document.getElementById('assetMemo').value.trim();
 
             if (!platform || !amount) {
-                alert('플랫폼명과 잔고를 입력해주세요.');
+                alert(t('enterPlatformAndBalance'));
                 return;
             }
 
@@ -1434,7 +2073,7 @@
 
         // 자산 삭제
         function deleteAsset(id) {
-            if (confirm('이 자산을 삭제하시겠습니까?')) {
+            if (confirm(t('deleteAssetConfirm'))) {
                 assets = assets.filter(a => a.id !== id);
                 saveData();
                 renderAssetsList();
@@ -1449,7 +2088,7 @@
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">💎</div>
-                        <p>등록된 자산이 없습니다.</p>
+                        <p>${t('noAssetsYet')}</p>
                     </div>
                 `;
                 document.getElementById('totalAssetsEUR').textContent = '€0.00';
@@ -1478,13 +2117,14 @@
                                 ${asset.currency !== 'EUR' ? `<span style="color: #6c757d; margin-left: 8px;">≈ €${valueInEUR.toFixed(2)}${ratesLastUpdated ? ' 📡' : ''}</span>` : ''}
                             </div>
                         </div>
-                        <button class="btn btn-delete" onclick="deleteAsset(${asset.id})">삭제</button>
+                        <button class="btn btn-delete" onclick="deleteAsset(${asset.id})">${t('delete')}</button>
                     </div>
                 `;
             });
 
             list.innerHTML = html;
-            document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toFixed(2)}${ratesLastUpdated ? ' (실시간)' : ''}`;
+            document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toFixed(2)}${ratesLastUpdated ? ' ' + t('liveTag') : ''}`;
+            updateHeroAssets();
         }
 
         // 기본 카테고리
@@ -1520,14 +2160,14 @@
             let html = '';
             
             if (includeAI) {
-                html += '<option value="">🤖 AI 자동 분류</option>';
+                html += `<option value="">🤖 ${t('aiAutoClassify').replace('🤖 ','')}</option>`;
             }
             
             allCategories.forEach(cat => {
-                html += `<option value="${cat.name}">${cat.emoji} ${cat.name}</option>`;
+                html += `<option value="${cat.name}">${cat.emoji} ${getCategoryDisplayName(cat.name)}</option>`;
             });
             
-            html += '<option value="수입">💰 수입</option>';
+            html += `<option value="수입">💰 ${t('catIncome')}</option>`;
             
             const currentValue = select.value;
             select.innerHTML = html;
@@ -1542,14 +2182,14 @@
             const emoji = document.getElementById('newCategoryEmoji').value.trim();
             
             if (!name) {
-                alert('카테고리 이름을 입력해주세요.');
+                alert(t('enterCategoryName'));
                 return;
             }
             
             // 중복 체크
             const allCategories = getAllCategories();
             if (allCategories.some(c => c.name === name)) {
-                alert('이미 존재하는 카테고리입니다.');
+                alert(t('categoryExists'));
                 return;
             }
             
@@ -1565,13 +2205,13 @@
             renderCustomCategoryList();
             updateAllCategorySelects();
             
-            alert(`"${emoji || '📌'} ${name}" 카테고리가 추가되었습니다!`);
+            alert(`"${emoji || '📌'} ${name}"${t('categoryAdded')}`);
         }
 
         // 사용자 정의 카테고리 삭제
         function deleteCustomCategory(index) {
             const category = customCategories[index];
-            const confirmed = confirm(`"${category.emoji} ${category.name}" 카테고리를 삭제하시겠습니까?`);
+            const confirmed = confirm(`"${category.emoji} ${category.name}" - ${t('deleteCategoryConfirm')}`);
             
             if (confirmed) {
                 customCategories.splice(index, 1);
@@ -1587,7 +2227,7 @@
             if (!list) return;
             
             if (customCategories.length === 0) {
-                list.innerHTML = '<span style="color: #6c757d; font-size: 14px;">추가한 카테고리가 없습니다.</span>';
+                list.innerHTML = `<span style="color: #6c757d; font-size: 14px;">${t('noCustomCategories')}</span>`;
                 return;
             }
             
@@ -1688,7 +2328,7 @@
         function updateViewMonthDisplay() {
             const year = currentViewMonth.getFullYear();
             const month = currentViewMonth.getMonth() + 1;
-            document.getElementById('viewMonth').textContent = `${year}년 ${month}월`;
+            document.getElementById('viewMonth').textContent = typeof t('yearMonth') === 'function' ? t('yearMonth')(year, month) : `${year}년 ${month}월`;
         }
 
         // 해당 월의 일별지출 필터링
@@ -1744,7 +2384,7 @@
             const amount = parseFloat(amountInput.value);
 
             if (!month || !amount) {
-                alert('월과 금액을 모두 입력해주세요.');
+                alert(t('enterMonthAndAmount'));
                 return;
             }
 
@@ -1768,7 +2408,7 @@
             saveData();
             updateDisplay();
             renderSalaryList();
-            alert('월급이 저장되었습니다!');
+            alert(t('salarySaved'));
         }
 
         // 월급 삭제
@@ -1785,26 +2425,26 @@
             
             if (salaries.length === 0) {
                 list.innerHTML = `
-                    <h3 style="margin: 20px 0 15px 0; color: #333;">월별 월급 내역</h3>
+                    <h3 style="margin: 20px 0 15px 0; color: #333;">${t('monthlySalaryHistory')}</h3>
                     <div class="empty-state">
                         <div class="empty-state-icon">💶</div>
-                        <p>아직 월급 내역이 없습니다.</p>
+                        <p>${t('noSalaryYet')}</p>
                     </div>
                 `;
                 return;
             }
 
-            let html = '<h3 style="margin: 20px 0 15px 0; color: #333;">월별 월급 내역</h3>';
+            let html = `<h3 style="margin: 20px 0 15px 0; color: #333;">${t('monthlySalaryHistory')}</h3>`;
             html += salaries.map(salary => {
                 const [year, month] = salary.month.split('-');
-                const displayMonth = `${year}년 ${month}월`;
+                const displayMonth = typeof t('yearMonth') === 'function' ? t('yearMonth')(parseInt(year), parseInt(month)) : `${year}년 ${month}월`;
                 return `
                     <div class="list-item">
                         <div class="list-item-info">
                             <div class="list-item-name">${displayMonth}</div>
                         </div>
                         <div class="list-item-amount">${formatCurrency(salary.amount)}</div>
-                        <button class="btn btn-delete" onclick="deleteSalary(${salary.id})">삭제</button>
+                        <button class="btn btn-delete" onclick="deleteSalary(${salary.id})">${t('delete')}</button>
                     </div>
                 `;
             }).join('');
@@ -1818,7 +2458,7 @@
             const amount = parseFloat(document.getElementById('fixedAmount').value);
 
             if (!name || !amount) {
-                alert('항목명과 금액을 모두 입력해주세요.');
+                alert(t('enterNameAndAmount'));
                 return;
             }
 
@@ -1846,7 +2486,7 @@
             let category = document.getElementById('categorySelect').value;
 
             if (!date || !name || !amount) {
-                alert('날짜, 항목명, 금액을 모두 입력해주세요.');
+                alert(t('enterAllFields'));
                 return;
             }
 
@@ -1855,7 +2495,7 @@
                 // 로딩 표시
                 const addButton = event.target;
                 const originalText = addButton.textContent;
-                addButton.textContent = 'AI 분류 중...';
+                addButton.textContent = t('aiClassifying');
                 addButton.disabled = true;
                 
                 try {
@@ -1969,18 +2609,18 @@
             console.log('분류 대상 개수:', unclassifiedExpenses.length);
 
             if (unclassifiedExpenses.length === 0) {
-                alert('분류할 항목이 없습니다. 모든 항목이 이미 분류되어 있습니다.');
+                alert(t('nothingToClassify'));
                 return;
             }
 
-            alert(`${unclassifiedExpenses.length}개의 항목을 AI로 분류합니다. 잠시만 기다려주세요.`);
+            alert(`${unclassifiedExpenses.length}${t('bulkClassifyStart')}`);
             
             console.log('분류 시작!');
 
             // 버튼 찾기
             const button = evt.target;
             const originalText = button.textContent;
-            button.textContent = '분류 중...';
+            button.textContent = t('classifying');
             button.disabled = true;
 
             try {
@@ -2012,7 +2652,7 @@
                         }
                         
                         classified++;
-                        button.textContent = `${classified}/${unclassifiedExpenses.length} 처리 중...`;
+                        button.textContent = `${classified}/${unclassifiedExpenses.length} ${t('processing')}`;
                         
                         // API 호출 간 짧은 지연
                         await new Promise(resolve => setTimeout(resolve, 500));
@@ -2033,13 +2673,13 @@
                 console.log('목록 렌더링 완료');
                 
                 if (failed > 0) {
-                    alert(`✅ ${classified}개 항목 분류 완료\n⚠️ ${failed}개 항목 분류 실패`);
+                    alert(`✅ ${classified}${t('classifyComplete')}\n⚠️ ${failed}${t('classifyFailed')}`);
                 } else {
-                    alert(`✅ ${classified}개 항목의 분류가 완료되었습니다!`);
+                    alert(`✅ ${classified}${t('classifyComplete')}`);
                 }
             } catch (error) {
                 console.error('❌ 일괄 분류 오류:', error);
-                alert('분류 중 오류가 발생했습니다: ' + error.message);
+                alert(t('classifyError') + error.message);
             } finally {
                 button.textContent = originalText;
                 button.disabled = false;
@@ -2051,22 +2691,22 @@
             const itemName = document.getElementById('editName').value;
             
             if (!itemName) {
-                alert('항목명을 먼저 입력해주세요.');
+                alert(t('enterItemNameFirst'));
                 return;
             }
 
             const button = evt.target;
             const originalText = button.textContent;
-            button.textContent = '분류 중...';
+            button.textContent = t('classifying');
             button.disabled = true;
 
             try {
                 const category = await classifyExpenseWithAI(itemName);
                 document.getElementById('editCategory').value = category;
-                alert(`"${category}" 카테고리로 분류되었습니다.`);
+                alert(`"${getCategoryDisplayName(category)}"${t('classifiedAs')}`);
             } catch (error) {
                 console.error('AI 분류 오류:', error);
-                alert('분류 중 오류가 발생했습니다: ' + error.message);
+                alert(t('classifyError') + error.message);
             } finally {
                 button.textContent = originalText;
                 button.disabled = false;
@@ -2127,12 +2767,12 @@
             // 통장에서 나가는 금액 계산 (월급 + 수입 - 고정지출 - 일반카드지출)
             const remaining = currentSalary + totalIncome - totalFixed - totalRegular;
 
-            document.getElementById('salaryDisplay').textContent = formatCurrency(currentSalary);
-            document.getElementById('incomeDisplay').textContent = formatCurrency(totalIncome);
-            document.getElementById('fixedExpenseDisplay').textContent = formatCurrency(totalFixed);
-            document.getElementById('dailyExpenseDisplay').textContent = formatCurrency(totalRegular);
-            document.getElementById('cryptoExpenseDisplay').textContent = formatCurrency(totalCrypto);
-            document.getElementById('remainingDisplay').textContent = formatCurrency(remaining);
+            setAmountText(document.getElementById('salaryDisplay'), formatCurrency(currentSalary));
+            setAmountText(document.getElementById('incomeDisplay'), formatCurrency(totalIncome));
+            setAmountText(document.getElementById('fixedExpenseDisplay'), formatCurrency(totalFixed));
+            setAmountText(document.getElementById('dailyExpenseDisplay'), formatCurrency(totalRegular));
+            setAmountText(document.getElementById('cryptoExpenseDisplay'), formatCurrency(totalCrypto));
+            setAmountText(document.getElementById('remainingDisplay'), formatCurrency(remaining));
 
             // 남은 금액 색상 변경
             const remainingEl = document.getElementById('remainingDisplay');
@@ -2144,6 +2784,20 @@
             } else {
                 remainingEl.style.color = '#212529';
             }
+
+            // Hero section update
+            const totalMonthlySpent = totalFixed + totalRegular + totalCrypto;
+            setAmountText(document.getElementById('heroRemaining'), formatCurrency(remaining));
+            setAmountText(document.getElementById('heroMonthlySpent'), formatCurrency(totalMonthlySpent));
+
+            // Hero remaining color
+            const heroRemainingEl = document.getElementById('heroRemaining');
+            if (heroRemainingEl) {
+                heroRemainingEl.className = 'balance-hero-stat-value ' + (remaining >= 0 ? 'positive' : 'negative');
+            }
+
+            // Update total assets in hero
+            updateHeroAssets();
         }
 
         // 고정지출 목록 렌더링
@@ -2154,7 +2808,7 @@
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
-                        <p>아직 고정지출 내역이 없습니다.</p>
+                        <p>${t('noFixedYet')}</p>
                     </div>
                 `;
                 return;
@@ -2167,7 +2821,7 @@
                         <div class="list-item-name">${expense.name}</div>
                     </div>
                     <div class="list-item-amount">${formatCurrency(expense.amount)}</div>
-                    <button class="btn btn-delete" onclick="deleteFixedExpense(${expense.id})">삭제</button>
+                    <button class="btn btn-delete" onclick="deleteFixedExpense(${expense.id})">${t('delete')}</button>
                 </div>
             `).join('');
 
@@ -2262,7 +2916,7 @@
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📅</div>
-                        <p>이번 달 일별지출 내역이 없습니다.</p>
+                        <p>${t('noDailyThisMonth')}</p>
                     </div>
                 `;
                 return;
@@ -2280,17 +2934,17 @@
                 let amountClass = '';
                 
                 if (isIncome) {
-                    badge = '<span class="payment-badge income">💰 수입</span>';
+                    badge = `<span class="payment-badge income">${t('incomeBadge')}</span>`;
                     amountClass = ' income';
                 } else if (paymentMethod === 'crypto') {
-                    badge = '<span class="payment-badge crypto">🪙 가상화폐</span>';
+                    badge = `<span class="payment-badge crypto">${t('cryptoBadge')}</span>`;
                 } else {
-                    badge = '<span class="payment-badge regular">💳 일반</span>';
+                    badge = `<span class="payment-badge regular">${t('regularBadge')}</span>`;
                 }
                 
                 // 카테고리 이모지 매핑
                 const categoryEmoji = getCategoryEmoji(category);
-                const categoryBadge = `<span class="category-badge">${categoryEmoji} ${category}</span>`;
+                const categoryBadge = `<span class="category-badge">${categoryEmoji} ${getCategoryDisplayName(category)}</span>`;
                 
                 return `
                     <div class="list-item${isIncome ? ' income' : ''}">
@@ -2299,8 +2953,8 @@
                             <div class="list-item-detail">${expense.date}</div>
                         </div>
                         <div class="list-item-amount${amountClass}">${isIncome ? '+' : ''}${formatCurrency(expense.amount)}</div>
-                        <button class="btn btn-edit" onclick="editDailyExpense(${expense.id})">수정</button>
-                        <button class="btn btn-delete" onclick="deleteDailyExpense(${expense.id})">삭제</button>
+                        <button class="btn btn-edit" onclick="editDailyExpense(${expense.id})">${t('edit')}</button>
+                        <button class="btn btn-delete" onclick="deleteDailyExpense(${expense.id})">${t('delete')}</button>
                     </div>
                 `;
             }).join('');
@@ -2339,8 +2993,8 @@
             const month = currentCalendarDate.getMonth();
             
             // 월 표시 업데이트
-            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-            document.getElementById('calendarMonth').textContent = `${year}년 ${monthNames[month]}`;
+            const monthNames = t('monthNames');
+            document.getElementById('calendarMonth').textContent = typeof t('yearMonth') === 'function' ? t('yearMonth')(year, month + 1) : `${year}년 ${monthNames[month]}`;
 
             // 이번 달의 첫날과 마지막 날
             const firstDay = new Date(year, month, 1);
@@ -2429,7 +3083,7 @@
                     expenseHtml += `<div class="calendar-day-expense" style="font-size: 11px; color: #28a745;">💰 +${formatCurrency(incomeTotal)}</div>`;
                 }
                 if (totalCount > 0) {
-                    expenseHtml += `<div class="calendar-day-items">${totalCount}건</div>`;
+                    expenseHtml += `<div class="calendar-day-items">${typeof t('itemCount') === 'function' ? t('itemCount')(totalCount) : totalCount + '건'}</div>`;
                 }
 
                 html += `
@@ -2464,10 +3118,10 @@
             // 날짜 포맷팅 (시간대 문제 방지)
             const [year, month, day] = dateStr.split('-').map(Number);
             const date = new Date(year, month - 1, day);
-            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+            const weekdays = t('weekdays');
             const weekday = weekdays[date.getDay()];
             
-            document.getElementById('modalDate').textContent = `${year}년 ${month}월 ${day}일 (${weekday})`;
+            document.getElementById('modalDate').textContent = typeof t('dateDisplay') === 'function' ? t('dateDisplay')(year, month, day, weekday) : `${year}년 ${month}월 ${day}일 (${weekday})`;
 
             // 지출과 수입 분리
             const expenses = dayExpenses.filter(e => e.type !== 'income');
@@ -2482,7 +3136,7 @@
             // 일반카드 지출
             if (regularExpenses.length > 0) {
                 html += '<div style="margin-bottom: 20px;">';
-                html += '<h4 style="margin-bottom: 10px; color: #495057; font-size: 14px;">💳 일반카드</h4>';
+                html += `<h4 style="margin-bottom: 10px; color: #495057; font-size: 14px;">${t('regularCardLabel')}</h4>`;
                 regularExpenses.forEach(expense => {
                     html += `
                         <div class="modal-expense-item">
@@ -2494,14 +3148,14 @@
                     `;
                 });
                 const regularTotal = regularExpenses.reduce((sum, e) => sum + e.amount, 0);
-                html += `<div style="text-align: right; padding: 10px 0; font-weight: 600; color: #495057;">소계: ${formatCurrency(regularTotal)}</div>`;
+                html += `<div style="text-align: right; padding: 10px 0; font-weight: 600; color: #495057;">${t('subtotal')}: ${formatCurrency(regularTotal)}</div>`;
                 html += '</div>';
             }
 
             // 가상화폐카드 지출
             if (cryptoExpenses.length > 0) {
                 html += '<div style="margin-bottom: 20px;">';
-                html += '<h4 style="margin-bottom: 10px; color: #495057; font-size: 14px;">🪙 가상화폐카드</h4>';
+                html += `<h4 style="margin-bottom: 10px; color: #495057; font-size: 14px;">${t('cryptoCardLabel')}</h4>`;
                 cryptoExpenses.forEach(expense => {
                     html += `
                         <div class="modal-expense-item">
@@ -2513,14 +3167,14 @@
                     `;
                 });
                 const cryptoTotal = cryptoExpenses.reduce((sum, e) => sum + e.amount, 0);
-                html += `<div style="text-align: right; padding: 10px 0; font-weight: 600; color: #495057;">소계: ${formatCurrency(cryptoTotal)}</div>`;
+                html += `<div style="text-align: right; padding: 10px 0; font-weight: 600; color: #495057;">${t('subtotal')}: ${formatCurrency(cryptoTotal)}</div>`;
                 html += '</div>';
             }
 
             // 수입
             if (incomes.length > 0) {
                 html += '<div style="margin-bottom: 20px;">';
-                html += '<h4 style="margin-bottom: 10px; color: #28a745; font-size: 14px;">💰 수입</h4>';
+                html += `<h4 style="margin-bottom: 10px; color: #28a745; font-size: 14px;">${t('incomeSection')}</h4>`;
                 incomes.forEach(income => {
                     html += `
                         <div class="modal-expense-item">
@@ -2532,7 +3186,7 @@
                     `;
                 });
                 const incomeTotal = incomes.reduce((sum, e) => sum + e.amount, 0);
-                html += `<div style="text-align: right; padding: 10px 0; font-weight: 600; color: #28a745;">소계: +${formatCurrency(incomeTotal)}</div>`;
+                html += `<div style="text-align: right; padding: 10px 0; font-weight: 600; color: #28a745;">${t('subtotal')}: +${formatCurrency(incomeTotal)}</div>`;
                 html += '</div>';
             }
 
@@ -2543,7 +3197,7 @@
             
             html += `
                 <div class="modal-total">
-                    <span>순 지출</span>
+                    <span>${t('netExpense')}</span>
                     <span>${formatCurrency(netAmount)}</span>
                 </div>
             `;
@@ -2603,7 +3257,7 @@
             const paymentMethod = transactionType === 'income' ? 'income' : document.getElementById('editPaymentMethod').value;
 
             if (!date || !name || !amount) {
-                alert('모든 필드를 입력해주세요.');
+                alert(t('enterAllFieldsEdit'));
                 return;
             }
 
@@ -2628,7 +3282,7 @@
                 }
 
                 closeEditModal();
-                alert('수정되었습니다!');
+                alert(t('edited'));
             }
         }
 
@@ -2669,7 +3323,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            alert('데이터를 파일로 내보냈습니다!');
+            alert(t('exportDone'));
         }
 
         // 데이터 가져오기 (JSON 파일에서 불러오기)
@@ -2684,13 +3338,13 @@
                     
                     // 데이터 유효성 검사
                     if (!data.salaries && !data.fixedExpenses && !data.dailyExpenses) {
-                        alert('올바른 가계부 데이터 파일이 아닙니다.');
+                        alert(t('invalidFile'));
                         return;
                     }
 
                     // 데이터 병합 여부 확인
                     if (salaries.length > 0 || fixedExpenses.length > 0 || dailyExpenses.length > 0) {
-                        const merge = confirm('기존 데이터가 있습니다. 기존 데이터를 유지하고 새 데이터를 추가하시겠습니까?\n\n확인: 데이터 병합\n취소: 기존 데이터 삭제 후 가져오기');
+                        const merge = confirm(t('mergeConfirm'));
                         
                         if (merge) {
                             // 데이터 병합
@@ -2723,9 +3377,9 @@
                         renderCalendar();
                     }
 
-                    alert('데이터를 성공적으로 가져왔습니다!');
+                    alert(t('importDone'));
                 } catch (error) {
-                    alert('파일을 읽는 중 오류가 발생했습니다: ' + error.message);
+                    alert(t('importError') + error.message);
                 }
             };
             
@@ -2765,7 +3419,7 @@
 
             // 이미지 파일 확인
             if (!file.type.startsWith('image/')) {
-                alert('이미지 파일만 업로드할 수 있습니다.');
+                alert(t('imageOnly'));
                 return;
             }
 
@@ -2806,16 +3460,16 @@
                         saveData();
                         updateDisplay();
                         renderFixedList();
-                        alert(`${addedCount}개의 고정지출 항목이 추가되었습니다!`);
+                        alert(`${addedCount}${t('fixedItemsAdded')}`);
                     } else {
-                        alert('유효한 지출 내역을 찾을 수 없습니다.');
+                        alert(t('noValidExpense'));
                     }
                 } else {
-                    alert('이미지에서 지출 내역을 인식하지 못했습니다. 수동으로 입력해주세요.');
+                    alert(t('imageAnalysisFailed'));
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('이미지 분석 중 오류가 발생했습니다: ' + error.message);
+                alert(t('imageAnalysisError') + error.message);
             } finally {
                 // 로딩 숨기기
                 document.getElementById('loading').classList.remove('active');
@@ -2909,6 +3563,13 @@
         // 페이지 로드 시 데이터 불러오기
         loadData();
 
+        // 언어 설정 적용
+        document.getElementById('langSelect').value = currentLang;
+        applyLanguage();
+
+        // 프라이버시 모드 적용
+        applyPrivacy();
+
         // 페이지 로드 시 실시간 환율 자동 조회
         fetchLiveRates();
 
@@ -2939,7 +3600,7 @@
                 statsContainer.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📊</div>
-                        <p>이번 달 지출 내역이 없습니다.</p>
+                        <p>${t('noExpenseThisMonth')}</p>
                     </div>
                 `;
                 return;
@@ -2984,7 +3645,7 @@
             );
 
             if (categoryExpenses.length === 0) {
-                alert('해당 카테고리에 지출 내역이 없습니다.');
+                alert(t('noCategoryExpense'));
                 return;
             }
 
@@ -2994,14 +3655,14 @@
             const emoji = getCategoryEmoji(categoryName);
             const total = categoryExpenses.reduce((sum, e) => sum + e.amount, 0);
             
-            document.getElementById('modalDate').textContent = `${emoji} ${categoryName} (${categoryExpenses.length}건)`;
+            document.getElementById('modalDate').textContent = `${emoji} ${getCategoryDisplayName(categoryName)} (${typeof t('itemCount') === 'function' ? t('itemCount')(categoryExpenses.length) : categoryExpenses.length + '건'})`;
 
             let html = '<div style="max-height: 400px; overflow-y: auto;">';
             
             sorted.forEach(expense => {
                 const paymentBadge = expense.paymentMethod === 'crypto' 
-                    ? '<span class="payment-badge crypto">🪙 가상화폐</span>'
-                    : '<span class="payment-badge regular">💳 일반</span>';
+                    ? `<span class="payment-badge crypto">${t('cryptoBadge')}</span>`
+                    : `<span class="payment-badge regular">${t('regularBadge')}</span>`;
                 
                 html += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f0f0f0;">
@@ -3020,7 +3681,7 @@
             
             html += `
                 <div class="modal-total">
-                    <span>총 지출</span>
+                    <span>${t('totalExpense')}</span>
                     <span>${formatCurrency(total)}</span>
                 </div>
             `;
