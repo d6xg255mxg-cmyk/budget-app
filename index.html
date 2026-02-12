@@ -1391,8 +1391,11 @@
         // 실시간 환율/코인 가격 가져오기
         async function fetchExchangeRates() {
             try {
-                // 코인 가격 (CoinGecko 무료 API)
-                const coinRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur');
+                // 코인 가격 (CoinGecko 무료 API with CORS proxy)
+                const coinUrl = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur';
+                const coinProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(coinUrl)}`;
+                
+                const coinRes = await fetch(coinProxyUrl);
                 if (coinRes.ok) {
                     const coinData = await coinRes.json();
                     if (coinData.bitcoin) exchangeRates['BTC'] = coinData.bitcoin.eur;
@@ -1533,10 +1536,11 @@
                 const coinId = coinMap[ticker.toUpperCase()] || ticker.toLowerCase();
                 console.log(`코인 가격 조회 중: ${ticker} (${coinId})`);
                 
-                // CoinGecko API 시도
-                const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=eur`, {
-                    headers: { 'Accept': 'application/json' }
-                });
+                // CORS 우회 프록시 사용
+                const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=eur`;
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+                
+                const res = await fetch(proxyUrl);
                 
                 console.log('API 응답 상태:', res.status);
                 
