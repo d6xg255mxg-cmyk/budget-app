@@ -1026,14 +1026,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="input-row" id="accountSelectionRow">
-                    <div class="input-group">
-                        <label>출금 계좌</label>
-                        <select id="fromAccount">
-                            <option value="">선택 안함 (자산 변동 없음)</option>
-                        </select>
-                    </div>
-                </div>
                 <div style="display: none;" id="paymentMethodGroup"></div>
                 <button class="btn" onclick="addDailyExpense()">추가</button>
 
@@ -1154,120 +1146,50 @@
             <div id="assetsTab" class="tab-content">
                 <h2 style="margin-bottom: 20px;">💎 자산 관리</h2>
                 
+                <!-- 자산 추가 폼 -->
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px;">자산 추가/수정</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>플랫폼명</label>
+                            <input type="text" id="assetPlatform" placeholder="예: 한국 신한은행, 독일 Deutsche Bank">
+                        </div>
+                        <div class="input-group">
+                            <label>통화</label>
+                            <select id="assetCurrency">
+                                <option value="EUR">EUR (€)</option>
+                                <option value="KRW">KRW (₩)</option>
+                                <option value="USD">USD ($)</option>
+                                <option value="BTC">BTC (₿)</option>
+                                <option value="ETH">ETH (Ξ)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>잔고</label>
+                            <input type="number" id="assetAmount" placeholder="금액 입력" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>메모 (선택)</label>
+                            <input type="text" id="assetMemo" placeholder="예: 비상금, 투자용">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="addOrUpdateAsset()">추가</button>
+                </div>
+
                 <!-- 총 자산 요약 -->
                 <div class="monthly-summary" style="margin-bottom: 20px;">
                     <div class="monthly-summary-title">💰 총 자산 (EUR 환산)</div>
-                    <div style="font-size: 32px; font-weight: bold; color: #212529; margin-top: 10px;" id="totalAssetsEUR">€0.00</div>
-                    <div style="font-size: 12px; color: #6c757d; margin-top: 5px;" id="ratesLastUpdated">환율 업데이트 중...</div>
+                    <div style="font-size: 32px; font-weight: bold; color: #212529; margin-top: 10px;" id="totalAssetsEUR">
+                        €0.00
+                    </div>
                 </div>
 
-                <!-- 계좌 목록 -->
-                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 style="margin: 0;">🏦 계좌 목록</h3>
-                        <button class="btn" onclick="toggleAddAssetForm()" id="addAssetBtn">+ 계좌 추가</button>
-                    </div>
-
-                    <!-- 계좌 추가 폼 (기본 숨김) -->
-                    <div id="addAssetForm" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>자산 종류</label>
-                                <select id="assetType" onchange="updateAssetFormType()">
-                                    <option value="account">🏦 일반 계좌/현금</option>
-                                    <option value="crypto">🪙 코인 (실시간)</option>
-                                    <option value="stock">📈 주식 (실시간)</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>플랫폼/이름</label>
-                                <input type="text" id="assetPlatform" placeholder="예: 신한은행, 바이낸스, 삼성전자">
-                            </div>
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group" id="assetTickerGroup" style="display: none;">
-                                <label>티커 심볼</label>
-                                <input type="text" id="assetTicker" placeholder="예: BTC, ETH, 005930.KS, AAPL" style="text-transform: uppercase;">
-                                <small style="color: #6c757d;">코인: BTC/ETH 등 | 한국주식: 005930.KS | 미국주식: AAPL</small>
-                            </div>
-                            <div class="input-group" id="assetCurrencyGroup">
-                                <label>통화</label>
-                                <select id="assetCurrency">
-                                    <option value="EUR">EUR (€)</option>
-                                    <option value="KRW">KRW (₩)</option>
-                                    <option value="USD">USD ($)</option>
-                                    <option value="BTC">BTC (₿)</option>
-                                    <option value="ETH">ETH (Ξ)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label id="assetAmountLabel">잔고/금액</label>
-                                <input type="number" id="assetAmount" placeholder="금액 입력" step="0.000001">
-                            </div>
-                            <div class="input-group">
-                                <label>메모 (선택)</label>
-                                <input type="text" id="assetMemo" placeholder="예: 비상금, 투자용">
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn" onclick="addOrUpdateAsset()">추가</button>
-                            <button class="btn" style="background: #6c757d;" onclick="toggleAddAssetForm()">취소</button>
-                        </div>
-                    </div>
-
-                    <div id="assetsList"></div>
-                </div>
-
-                <!-- 입출금 내역 추가 -->
-                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 15px;">💸 입출금 기록</h3>
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label>날짜</label>
-                            <input type="date" id="txDate">
-                        </div>
-                        <div class="input-group">
-                            <label>구분</label>
-                            <select id="txType" onchange="updateTxAccountLabel()">
-                                <option value="deposit">💰 입금</option>
-                                <option value="withdrawal">💸 출금</option>
-                                <option value="transfer">🔄 이체</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label id="txFromLabel">계좌</label>
-                            <select id="txFromAccount">
-                                <option value="">계좌 선택</option>
-                            </select>
-                        </div>
-                        <div class="input-group" id="txToAccountGroup" style="display: none;">
-                            <label>받는 계좌</label>
-                            <select id="txToAccount">
-                                <option value="">계좌 선택</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label>금액</label>
-                            <input type="number" id="txAmount" placeholder="금액 입력" step="0.01">
-                        </div>
-                        <div class="input-group">
-                            <label>메모</label>
-                            <input type="text" id="txMemo" placeholder="예: 월급, 부모님 송금, 생활비">
-                        </div>
-                    </div>
-                    <button class="btn" onclick="addAssetTransaction()">기록</button>
-                </div>
-
-                <!-- 입출금 이력 -->
+                <!-- 자산 목록 -->
                 <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
-                    <h3 style="margin-bottom: 15px;">📋 입출금 이력</h3>
-                    <div id="assetTransactionsList"></div>
+                    <h3 style="margin-bottom: 15px;">자산 목록</h3>
+                    <div id="assetsList"></div>
                 </div>
             </div>
 
@@ -1351,12 +1273,6 @@
                         <option value="crypto">🪙 가상화폐카드</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label>출금 계좌</label>
-                    <select id="editFromAccount">
-                        <option value="">선택 안함</option>
-                    </select>
-                </div>
             </div>
             <div class="edit-actions">
                 <button class="btn btn-cancel" onclick="closeEditModal()">취소</button>
@@ -1376,54 +1292,15 @@
         let currentViewMonth = new Date(); // 메인 화면에서 보고 있는 월
         let customCategories = []; // 사용자 정의 카테고리
         let assets = []; // 자산 목록
-        let assetTransactions = []; // 입출금 이력
 
         // 환율 (고정값 - 실제 사용시에는 API로 가져올 수 있음)
-        // 환율 (동적으로 업데이트됨)
-        let exchangeRates = {
+        const exchangeRates = {
             'EUR': 1,
-            'KRW': 0.00073,
-            'USD': 0.92,
-            'BTC': 85000,
-            'ETH': 2500
+            'KRW': 0.00073, // 1 KRW = 0.00073 EUR
+            'USD': 0.92, // 1 USD = 0.92 EUR
+            'BTC': 85000, // 1 BTC = 85000 EUR (예시)
+            'ETH': 2500 // 1 ETH = 2500 EUR (예시)
         };
-
-        // 실시간 환율/코인 가격 가져오기
-        async function fetchExchangeRates() {
-            try {
-                // 코인 가격 (CoinGecko 무료 API with CORS proxy)
-                const coinUrl = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur';
-                const coinProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(coinUrl)}`;
-                
-                const coinRes = await fetch(coinProxyUrl);
-                if (coinRes.ok) {
-                    const coinData = await coinRes.json();
-                    if (coinData.bitcoin) exchangeRates['BTC'] = coinData.bitcoin.eur;
-                    if (coinData.ethereum) exchangeRates['ETH'] = coinData.ethereum.eur;
-                    console.log('코인 가격 업데이트:', { BTC: exchangeRates['BTC'], ETH: exchangeRates['ETH'] });
-                }
-            } catch (e) {
-                console.warn('코인 가격 업데이트 실패, 기본값 사용:', e);
-            }
-
-            try {
-                // 환율 (EUR 기준, frankfurter.app 무료 API)
-                const fxRes = await fetch('https://api.frankfurter.app/latest?from=EUR&to=KRW,USD');
-                if (fxRes.ok) {
-                    const fxData = await fxRes.json();
-                    if (fxData.rates.KRW) exchangeRates['KRW'] = 1 / fxData.rates.KRW;
-                    if (fxData.rates.USD) exchangeRates['USD'] = 1 / fxData.rates.USD;
-                    console.log('환율 업데이트:', { KRW: exchangeRates['KRW'], USD: exchangeRates['USD'] });
-                }
-            } catch (e) {
-                console.warn('환율 업데이트 실패, 기본값 사용:', e);
-            }
-
-            // 자산 목록 다시 렌더링
-            renderAssetsList();
-            const el = document.getElementById('ratesLastUpdated');
-            if (el) el.textContent = `환율 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
-        }
 
         // 통화 기호 매핑
         const currencySymbols = {
@@ -1436,217 +1313,52 @@
 
         // 자산 추가/수정
         function addOrUpdateAsset() {
-            const assetType = document.getElementById('assetType').value;
             const platform = document.getElementById('assetPlatform').value.trim();
             const currency = document.getElementById('assetCurrency').value;
             const amount = parseFloat(document.getElementById('assetAmount').value);
             const memo = document.getElementById('assetMemo').value.trim();
-            const ticker = document.getElementById('assetTicker') ? document.getElementById('assetTicker').value.trim().toUpperCase() : '';
 
             if (!platform || !amount) {
                 alert('플랫폼명과 잔고를 입력해주세요.');
                 return;
             }
-            if ((assetType === 'crypto' || assetType === 'stock') && !ticker) {
-                alert('티커 심볼을 입력해주세요. (예: BTC, AAPL, 005930.KS)');
-                return;
-            }
 
-            console.log('자산 추가 전:', assets);
-
-            const existingIndex = assets.findIndex(a => a.platform === platform && (a.currency === currency || a.ticker === ticker));
-
-            const newData = {
-                platform,
-                assetType,
-                amount,
-                memo,
-                ...(assetType === 'account' ? { currency } : { ticker }),
-                updatedAt: new Date().toISOString()
-            };
+            // 같은 플랫폼이 이미 있는지 확인
+            const existingIndex = assets.findIndex(a => a.platform === platform && a.currency === currency);
 
             if (existingIndex !== -1) {
-                assets[existingIndex] = { ...assets[existingIndex], ...newData };
-                console.log('자산 업데이트:', assets[existingIndex]);
+                // 업데이트
+                assets[existingIndex].amount = amount;
+                assets[existingIndex].memo = memo;
+                assets[existingIndex].updatedAt = new Date().toISOString();
             } else {
-                const newAsset = { id: Date.now(), createdAt: new Date().toISOString(), ...newData };
-                assets.push(newAsset);
-                console.log('자산 추가:', newAsset);
+                // 새로 추가
+                assets.push({
+                    id: Date.now(),
+                    platform: platform,
+                    currency: currency,
+                    amount: amount,
+                    memo: memo,
+                    createdAt: new Date().toISOString()
+                });
             }
 
-            console.log('자산 추가 후:', assets);
-
+            // 입력 필드 초기화
             document.getElementById('assetPlatform').value = '';
             document.getElementById('assetAmount').value = '';
             document.getElementById('assetMemo').value = '';
             document.getElementById('assetCurrency').value = 'EUR';
-            document.getElementById('assetType').value = 'account';
-            if (document.getElementById('assetTicker')) document.getElementById('assetTicker').value = '';
-            updateAssetFormType();
 
             saveData();
-            console.log('저장 완료');
             renderAssetsList();
-
-            // 코인/주식이면 바로 가격 조회
-            if (assetType === 'crypto' || assetType === 'stock') {
-                refreshLivePrices();
-            }
         }
 
         // 자산 삭제
         function deleteAsset(id) {
-            assets = assets.filter(a => a.id !== id);
-            saveData();
-            renderAssetsList();
-            alert('삭제되었습니다.');
-        }
-
-        // 자산 폼 타입 변경 시 UI 업데이트
-        function updateAssetFormType() {
-            const type = document.getElementById('assetType').value;
-            const tickerGroup = document.getElementById('assetTickerGroup');
-            const currencyGroup = document.getElementById('assetCurrencyGroup');
-            const amountLabel = document.getElementById('assetAmountLabel');
-
-            if (type === 'crypto' || type === 'stock') {
-                tickerGroup.style.display = 'block';
-                currencyGroup.style.display = 'none';
-                amountLabel.textContent = '보유 수량';
-                document.getElementById('assetAmount').placeholder = '예: 0.5 (BTC 0.5개)';
-            } else {
-                tickerGroup.style.display = 'none';
-                currencyGroup.style.display = 'block';
-                amountLabel.textContent = '잔고/금액';
-                document.getElementById('assetAmount').placeholder = '금액 입력';
-            }
-        }
-
-        // 코인 실시간 가격 조회 (CoinGecko 무료 API)
-        async function fetchCryptoPrice(ticker) {
-            try {
-                // CoinGecko 티커 → ID 매핑
-                const coinMap = {
-                    'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana',
-                    'XRP': 'ripple', 'ADA': 'cardano', 'DOGE': 'dogecoin',
-                    'DOT': 'polkadot', 'MATIC': 'matic-network', 'LINK': 'chainlink',
-                    'UNI': 'uniswap', 'AVAX': 'avalanche-2', 'ATOM': 'cosmos',
-                    'LTC': 'litecoin', 'BCH': 'bitcoin-cash', 'BNB': 'binancecoin'
-                };
-                const coinId = coinMap[ticker.toUpperCase()] || ticker.toLowerCase();
-                console.log(`코인 가격 조회 중: ${ticker} (${coinId})`);
-                
-                // CORS 우회 프록시 사용
-                const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=eur`;
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-                
-                const res = await fetch(proxyUrl);
-                
-                console.log('API 응답 상태:', res.status);
-                
-                if (!res.ok) {
-                    throw new Error(`API 오류: ${res.status}`);
-                }
-                
-                const data = await res.json();
-                console.log('API 응답 데이터:', data);
-                
-                const price = data[coinId]?.eur;
-                if (price) {
-                    console.log(`${ticker} 가격: €${price}`);
-                    return price;
-                } else {
-                    console.warn(`${ticker} 가격을 찾을 수 없음:`, data);
-                    return null;
-                }
-            } catch (e) {
-                console.error('코인 가격 조회 실패:', e.message);
-                return null;
-            }
-        }
-
-        // 주식 실시간 가격 조회 (Yahoo Finance)
-        async function fetchStockPrice(ticker) {
-            try {
-                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`);
-                const data = await res.json();
-                const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-                const currency = data?.chart?.result?.[0]?.meta?.currency;
-                return { price, currency };
-            } catch (e) {
-                console.error('주식 가격 조회 실패:', e);
-                return null;
-            }
-        }
-
-        // EUR 환율 조회
-        async function fetchExchangeRate(fromCurrency) {
-            try {
-                const res = await fetch(`https://api.frankfurter.app/latest?from=${fromCurrency}&to=EUR`);
-                const data = await res.json();
-                return data?.rates?.EUR || null;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        // 모든 투자 자산 실시간 가격 새로고침
-        async function refreshLivePrices() {
-            const btn = document.getElementById('refreshPricesBtn');
-            if (btn) { btn.textContent = '⏳ 조회 중...'; btn.disabled = true; }
-
-            const investmentAssets = assets.filter(a => a.assetType === 'crypto' || a.assetType === 'stock');
-            
-            if (investmentAssets.length === 0) {
-                alert('실시간 가격 조회가 가능한 코인/주식 자산이 없습니다.\n자산 추가 시 "🪙 코인 (실시간)" 또는 "📈 주식 (실시간)"을 선택해주세요.');
-                if (btn) { btn.textContent = '🔄 가격 새로고침'; btn.disabled = false; }
-                return;
-            }
-
-            let successCount = 0;
-            let failCount = 0;
-            
-            for (const asset of investmentAssets) {
-                try {
-                    if (asset.assetType === 'crypto') {
-                        const eurPrice = await fetchCryptoPrice(asset.ticker);
-                        if (eurPrice !== null) {
-                            asset.livePrice = eurPrice;
-                            asset.livePriceEUR = eurPrice;
-                            asset.lastUpdated = new Date().toISOString();
-                            successCount++;
-                        } else {
-                            failCount++;
-                        }
-                    } else if (asset.assetType === 'stock') {
-                        const result = await fetchStockPrice(asset.ticker);
-                        if (result?.price) {
-                            asset.livePrice = result.price;
-                            asset.liveCurrency = result.currency || 'USD';
-                            if (result.currency === 'EUR') {
-                                asset.livePriceEUR = result.price;
-                            } else {
-                                const rate = await fetchExchangeRate(result.currency);
-                                asset.livePriceEUR = rate ? result.price * rate : result.price * 0.92;
-                            }
-                            asset.lastUpdated = new Date().toISOString();
-                            successCount++;
-                        } else {
-                            failCount++;
-                        }
-                    }
-                } catch (e) {
-                    console.error(`${asset.platform} 가격 조회 실패:`, e);
-                    failCount++;
-                }
-            }
-
-            saveData();
-            renderAssetsList();
-            if (btn) { btn.textContent = '🔄 가격 새로고침'; btn.disabled = false; }
-            
-            if (failCount > 0) {
-                alert(`가격 조회 완료\n✅ 성공: ${successCount}개\n❌ 실패: ${failCount}개\n\n실패한 경우 콘솔(F12)에서 오류 내용을 확인해주세요.`);
+            if (confirm('이 자산을 삭제하시겠습니까?')) {
+                assets = assets.filter(a => a.id !== id);
+                saveData();
+                renderAssetsList();
             }
         }
 
@@ -1655,270 +1367,45 @@
             const list = document.getElementById('assetsList');
             
             if (assets.length === 0) {
-                list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💎</div><p>등록된 자산이 없습니다.</p></div>`;
-                document.getElementById('totalAssetsEUR').textContent = '€0.00';
-                updateAccountDropdowns();
-                return;
-            }
-
-            // 투자 자산 여부 확인
-            const hasInvestments = assets.some(a => a.assetType === 'crypto' || a.assetType === 'stock');
-
-            // 새로고침 버튼 표시
-            const refreshBtnHtml = hasInvestments ? `
-                <div style="margin-bottom: 15px;">
-                    <button class="btn" id="refreshPricesBtn" onclick="refreshLivePrices()">🔄 가격 새로고침</button>
-                    <span style="color: #6c757d; font-size: 13px; margin-left: 10px;">코인/주식 실시간 가격 업데이트</span>
-                </div>
-            ` : '';
-
-            let totalEUR = 0;
-            let html = refreshBtnHtml;
-
-            assets.forEach(asset => {
-                let displayAmount = '';
-                let valueInEUR = 0;
-                let priceInfo = '';
-                let badge = '';
-
-                if (asset.assetType === 'crypto') {
-                    badge = '<span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 6px;">🪙 코인</span>';
-                    if (asset.livePrice) {
-                        valueInEUR = asset.amount * asset.livePriceEUR;
-                        const updated = asset.lastUpdated ? new Date(asset.lastUpdated).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'}) : '';
-                        priceInfo = `<span style="color: #6c757d; font-size: 12px;">1${asset.ticker} = €${asset.livePrice.toLocaleString('de-DE', {maximumFractionDigits: 2})} · ${updated} 기준</span>`;
-                        displayAmount = `${asset.amount} ${asset.ticker} ≈ <strong>€${valueInEUR.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>`;
-                    } else {
-                        displayAmount = `${asset.amount} ${asset.ticker} <span style="color:#dc3545; font-size:12px;">(가격 미조회)</span>`;
-                        priceInfo = '<span style="color: #6c757d; font-size: 12px;">🔄 새로고침 버튼으로 가격을 불러오세요</span>';
-                    }
-                } else if (asset.assetType === 'stock') {
-                    badge = '<span style="background: #d1ecf1; color: #0c5460; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 6px;">📈 주식</span>';
-                    if (asset.livePrice) {
-                        valueInEUR = asset.amount * asset.livePriceEUR;
-                        const updated = asset.lastUpdated ? new Date(asset.lastUpdated).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'}) : '';
-                        priceInfo = `<span style="color: #6c757d; font-size: 12px;">1주 = ${asset.liveCurrency || ''} ${asset.livePrice.toLocaleString()} · ${updated} 기준</span>`;
-                        displayAmount = `${asset.amount}주 ≈ <strong>€${valueInEUR.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>`;
-                    } else {
-                        displayAmount = `${asset.amount}주 <span style="color:#dc3545; font-size:12px;">(가격 미조회)</span>`;
-                        priceInfo = '<span style="color: #6c757d; font-size: 12px;">🔄 새로고침 버튼으로 가격을 불러오세요</span>';
-                    }
-                } else {
-                    const symbol = currencySymbols[asset.currency] || '';
-                    valueInEUR = asset.amount * (exchangeRates[asset.currency] || 1);
-                    displayAmount = `${symbol}${asset.amount.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${asset.currency}`;
-                    if (asset.currency !== 'EUR') {
-                        displayAmount += ` ≈ <strong>€${valueInEUR.toFixed(2)}</strong>`;
-                    }
-                }
-
-                totalEUR += valueInEUR;
-
-                html += `
-                    <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 6px;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div>
-                                <span style="font-weight: 600;">${asset.platform}</span>
-                                ${badge}
-                                ${asset.memo ? `<span style="color: #6c757d; font-size: 13px; margin-left: 6px;">(${asset.memo})</span>` : ''}
-                            </div>
-                            <button class="btn btn-delete" onclick="deleteAsset(${asset.id})">삭제</button>
-                        </div>
-                        <div style="font-size: 15px;">${displayAmount}</div>
-                        ${priceInfo ? `<div>${priceInfo}</div>` : ''}
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💎</div>
+                        <p>등록된 자산이 없습니다.</p>
                     </div>
                 `;
-            });
+                document.getElementById('totalAssetsEUR').textContent = '€0.00';
+                return;
+            }
 
-            list.innerHTML = html;
-            document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            updateAccountDropdowns();
-        }
-
-        // 계좌 선택 드롭다운 업데이트
-        function updateAccountDropdowns() {
-            let html = '<option value="">선택 안함 (자산 변동 없음)</option>';
-            let txHtml = '<option value="">계좌 선택</option>';
+            // 총 자산 계산 (EUR 기준)
+            let totalEUR = 0;
             
+            let html = '';
             assets.forEach(asset => {
                 const symbol = currencySymbols[asset.currency];
-                const displayText = `${asset.platform} (${symbol}${asset.amount.toFixed(2)} ${asset.currency})`;
-                html += `<option value="${asset.id}">${displayText}</option>`;
-                txHtml += `<option value="${asset.id}">${displayText}</option>`;
-            });
-
-            ['fromAccount', 'editFromAccount'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = html;
-            });
-
-            ['txFromAccount', 'txToAccount'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = txHtml;
-            });
-        }
-
-        // 계좌 추가 폼 토글
-        function toggleAddAssetForm() {
-            const form = document.getElementById('addAssetForm');
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        }
-
-        // 이체 타입에 따라 UI 변경
-        function updateTxAccountLabel() {
-            const txType = document.getElementById('txType').value;
-            const fromLabel = document.getElementById('txFromLabel');
-            const toGroup = document.getElementById('txToAccountGroup');
-
-            if (txType === 'deposit') {
-                fromLabel.textContent = '입금 계좌';
-                toGroup.style.display = 'none';
-            } else if (txType === 'withdrawal') {
-                fromLabel.textContent = '출금 계좌';
-                toGroup.style.display = 'none';
-            } else if (txType === 'transfer') {
-                fromLabel.textContent = '보내는 계좌';
-                toGroup.style.display = 'block';
-            }
-        }
-
-        // 입출금 기록 추가
-        function addAssetTransaction() {
-            const date = document.getElementById('txDate').value;
-            const txType = document.getElementById('txType').value;
-            const fromAccountId = parseInt(document.getElementById('txFromAccount').value);
-            const toAccountId = parseInt(document.getElementById('txToAccount').value);
-            const amount = parseFloat(document.getElementById('txAmount').value);
-            const memo = document.getElementById('txMemo').value.trim();
-
-            if (!date || !fromAccountId || !amount) {
-                alert('날짜, 계좌, 금액을 모두 입력해주세요.');
-                return;
-            }
-
-            if (txType === 'transfer' && !toAccountId) {
-                alert('받는 계좌를 선택해주세요.');
-                return;
-            }
-
-            const fromAccount = assets.find(a => a.id === fromAccountId);
-            if (!fromAccount) return;
-
-            // 잔액 업데이트
-            if (txType === 'deposit') {
-                fromAccount.amount += amount;
-            } else if (txType === 'withdrawal') {
-                if (fromAccount.amount - amount < 0) {
-                    const ok = confirm(`잔액이 부족합니다. 그래도 진행하시겠습니까?\n현재 잔액: ${currencySymbols[fromAccount.currency]}${fromAccount.amount.toFixed(2)}`);
-                    if (!ok) return;
-                }
-                fromAccount.amount -= amount;
-            } else if (txType === 'transfer') {
-                const toAccount = assets.find(a => a.id === toAccountId);
-                if (!toAccount) return;
-                fromAccount.amount -= amount;
-                toAccount.amount += amount;
-                toAccount.updatedAt = new Date().toISOString();
-            }
-
-            fromAccount.updatedAt = new Date().toISOString();
-
-            // 이력 추가
-            assetTransactions.push({
-                id: Date.now(),
-                date: date,
-                type: txType,
-                fromAccountId: fromAccountId,
-                toAccountId: txType === 'transfer' ? toAccountId : null,
-                amount: amount,
-                memo: memo
-            });
-
-            // 입력 초기화
-            document.getElementById('txAmount').value = '';
-            document.getElementById('txMemo').value = '';
-            document.getElementById('txFromAccount').value = '';
-            document.getElementById('txToAccount').value = '';
-
-            saveData();
-            renderAssetsList();
-            renderAssetTransactionsList();
-        }
-
-        // 입출금 이력 삭제
-        function deleteAssetTransaction(id) {
-            const tx = assetTransactions.find(t => t.id === id);
-            if (!tx) return;
-
-            // 잔액 원복
-            const fromAccount = assets.find(a => a.id === tx.fromAccountId);
-            if (fromAccount) {
-                if (tx.type === 'deposit') {
-                    fromAccount.amount -= tx.amount;
-                } else if (tx.type === 'withdrawal') {
-                    fromAccount.amount += tx.amount;
-                } else if (tx.type === 'transfer') {
-                    fromAccount.amount += tx.amount;
-                    const toAccount = assets.find(a => a.id === tx.toAccountId);
-                    if (toAccount) toAccount.amount -= tx.amount;
-                }
-            }
-
-            assetTransactions = assetTransactions.filter(t => t.id !== id);
-            saveData();
-            renderAssetsList();
-            renderAssetTransactionsList();
-        }
-
-        // 입출금 이력 렌더링
-        function renderAssetTransactionsList() {
-            const list = document.getElementById('assetTransactionsList');
-            if (!list) return;
-
-            if (assetTransactions.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>입출금 이력이 없습니다.</p></div>';
-                return;
-            }
-
-            // 최신순 정렬
-            const sorted = [...assetTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            const typeLabels = { deposit: '💰 입금', withdrawal: '💸 출금', transfer: '🔄 이체' };
-            const typeColors = { deposit: '#28a745', withdrawal: '#dc3545', transfer: '#667eea' };
-
-            let html = '';
-            sorted.forEach(tx => {
-                const fromAccount = assets.find(a => a.id === tx.fromAccountId);
-                const toAccount = tx.toAccountId ? assets.find(a => a.id === tx.toAccountId) : null;
-                const symbol = fromAccount ? currencySymbols[fromAccount.currency] : '€';
-                const accountName = fromAccount ? fromAccount.platform : '(삭제된 계좌)';
-                
-                let accountInfo = accountName;
-                if (tx.type === 'transfer' && toAccount) {
-                    accountInfo = `${accountName} → ${toAccount.platform}`;
-                }
+                const valueInEUR = asset.amount * exchangeRates[asset.currency];
+                totalEUR += valueInEUR;
 
                 html += `
                     <div class="list-item">
                         <div class="list-item-info">
                             <div class="list-item-name">
-                                <span style="color: ${typeColors[tx.type]}; font-weight: bold;">${typeLabels[tx.type]}</span>
-                                <span style="color: #6c757d; font-size: 13px; margin-left: 8px;">${accountInfo}</span>
-                                ${tx.memo ? `<span style="color: #6c757d; font-size: 13px; margin-left: 8px;">· ${tx.memo}</span>` : ''}
+                                ${asset.platform}
+                                ${asset.memo ? `<span style="color: #6c757d; font-size: 13px; margin-left: 8px;">(${asset.memo})</span>` : ''}
                             </div>
-                            <div class="list-item-detail">${tx.date}</div>
+                            <div class="list-item-detail">
+                                ${symbol}${asset.amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8})}
+                                ${asset.currency}
+                                ${asset.currency !== 'EUR' ? `<span style="color: #6c757d; margin-left: 8px;">≈ €${valueInEUR.toFixed(2)}</span>` : ''}
+                            </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-weight: bold; color: ${typeColors[tx.type]};">
-                                ${tx.type === 'withdrawal' ? '-' : '+'}${symbol}${tx.amount.toFixed(2)}
-                            </span>
-                            <button class="btn btn-delete" onclick="deleteAssetTransaction(${tx.id})">삭제</button>
-                        </div>
+                        <button class="btn btn-delete" onclick="deleteAsset(${asset.id})">삭제</button>
                     </div>
                 `;
             });
 
             list.innerHTML = html;
+            document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toFixed(2)}`;
         }
 
         // 기본 카테고리
@@ -2049,7 +1536,6 @@
                 dailyExpenses = data.dailyExpenses || [];
                 customCategories = data.customCategories || [];
                 assets = data.assets || [];
-                assetTransactions = data.assetTransactions || [];
                 
                 console.log('데이터 불러오기 완료:', {
                     salaries: salaries.length,
@@ -2083,12 +1569,9 @@
                 renderDailyList();
                 renderSalaryList();
                 renderAssetsList();
-                renderAssetTransactionsList();
             }
             // 오늘 날짜 기본값 설정
             document.getElementById('dailyDate').valueAsDate = new Date();
-            const txDateEl = document.getElementById('txDate');
-            if (txDateEl) txDateEl.valueAsDate = new Date();
             // 현재 월 기본값 설정
             const now = new Date();
             const currentMonth = now.toISOString().slice(0, 7);
@@ -2100,9 +1583,6 @@
             // 카테고리 UI 업데이트
             updateAllCategorySelects();
             renderCustomCategoryList();
-            
-            // 계좌 드롭다운 업데이트
-            updateAccountDropdowns();
         }
 
         // 데이터 저장
@@ -2112,8 +1592,7 @@
                 fixedExpenses: fixedExpenses,
                 dailyExpenses: dailyExpenses,
                 customCategories: customCategories,
-                assets: assets,
-                assetTransactions: assetTransactions
+                assets: assets
             };
             localStorage.setItem('budgetAppEuro_v2', JSON.stringify(data));
         }
@@ -2163,11 +1642,6 @@
             // 통계 탭으로 전환 시 통계 렌더링
             if (tab === 'stats') {
                 renderCategoryStats();
-            }
-            
-            // 자산 탭으로 전환 시 실시간 환율/코인 가격 업데이트
-            if (tab === 'assets') {
-                fetchExchangeRates();
             }
         }
 
@@ -2290,7 +1764,6 @@
             const amount = parseFloat(document.getElementById('dailyAmount').value);
             const transactionType = document.getElementById('transactionType').value;
             const paymentMethod = transactionType === 'income' ? 'income' : document.getElementById('paymentMethod').value;
-            const fromAccountId = document.getElementById('fromAccount').value;
             let category = document.getElementById('categorySelect').value;
 
             if (!date || !name || !amount) {
@@ -2320,27 +1793,6 @@
                 category = '수입';
             }
 
-            // 계좌에서 차감/입금
-            if (fromAccountId) {
-                const account = assets.find(a => a.id === parseInt(fromAccountId));
-                if (account) {
-                    if (transactionType === 'expense') {
-                        account.amount -= amount;
-                        if (account.amount < 0) {
-                            const confirmed = confirm(`${account.platform} 잔액이 부족합니다. 그래도 진행하시겠습니까?\n현재 잔액: ${currencySymbols[account.currency]}${(account.amount + amount).toFixed(2)}\n지출 후: ${currencySymbols[account.currency]}${account.amount.toFixed(2)}`);
-                            if (!confirmed) {
-                                account.amount += amount; // 원복
-                                return;
-                            }
-                        }
-                    } else {
-                        // 수입인 경우 입금
-                        account.amount += amount;
-                    }
-                    account.updatedAt = new Date().toISOString();
-                }
-            }
-
             dailyExpenses.push({
                 id: Date.now(),
                 date: date,
@@ -2348,8 +1800,7 @@
                 amount: amount,
                 paymentMethod: paymentMethod,
                 type: transactionType,
-                category: category || '기타',
-                fromAccountId: fromAccountId ? parseInt(fromAccountId) : null
+                category: category || '기타'
             });
 
             document.getElementById('dailyName').value = '';
@@ -2357,13 +1808,11 @@
             document.getElementById('transactionType').value = 'expense';
             document.getElementById('paymentMethod').value = 'regular';
             document.getElementById('categorySelect').value = '';
-            document.getElementById('fromAccount').value = '';
             updatePaymentMethodOptions();
 
             saveData();
             updateDisplay();
             renderDailyList();
-            renderAssetsList(); // 자산 목록도 업데이트
             
             // 달력 보기가 활성화되어 있으면 달력도 업데이트
             if (currentView === 'calendar') {
@@ -2555,28 +2004,10 @@
 
         // 일별지출 삭제
         function deleteDailyExpense(id) {
-            const expense = dailyExpenses.find(e => e.id === id);
-            
-            // 계좌로 복원
-            if (expense && expense.fromAccountId) {
-                const account = assets.find(a => a.id === expense.fromAccountId);
-                if (account) {
-                    if (expense.type === 'expense') {
-                        // 지출을 삭제하면 계좌에 다시 추가
-                        account.amount += expense.amount;
-                    } else {
-                        // 수입을 삭제하면 계좌에서 차감
-                        account.amount -= expense.amount;
-                    }
-                    account.updatedAt = new Date().toISOString();
-                }
-            }
-            
             dailyExpenses = dailyExpenses.filter(e => e.id !== id);
             saveData();
             updateDisplay();
             renderDailyList();
-            renderAssetsList(); // 자산 목록도 업데이트
             
             // 달력 보기가 활성화되어 있으면 달력도 업데이트
             if (currentView === 'calendar') {
@@ -3062,7 +2493,6 @@
             document.getElementById('editName').value = expense.name;
             document.getElementById('editAmount').value = expense.amount;
             document.getElementById('editCategory').value = expense.category || '기타';
-            document.getElementById('editFromAccount').value = expense.fromAccountId || '';
             
             if (transactionType === 'expense') {
                 document.getElementById('editPaymentMethod').value = expense.paymentMethod || 'regular';
@@ -3092,7 +2522,6 @@
             const amount = parseFloat(document.getElementById('editAmount').value);
             const category = document.getElementById('editCategory').value;
             const paymentMethod = transactionType === 'income' ? 'income' : document.getElementById('editPaymentMethod').value;
-            const newFromAccountId = document.getElementById('editFromAccount').value;
 
             if (!date || !name || !amount) {
                 alert('모든 필드를 입력해주세요.');
@@ -3101,33 +2530,6 @@
 
             const expenseIndex = dailyExpenses.findIndex(e => e.id === editingExpenseId);
             if (expenseIndex !== -1) {
-                const oldExpense = dailyExpenses[expenseIndex];
-                
-                // 이전 계좌로 금액 복원
-                if (oldExpense.fromAccountId) {
-                    const oldAccount = assets.find(a => a.id === oldExpense.fromAccountId);
-                    if (oldAccount) {
-                        if (oldExpense.type === 'expense') {
-                            oldAccount.amount += oldExpense.amount;
-                        } else {
-                            oldAccount.amount -= oldExpense.amount;
-                        }
-                    }
-                }
-                
-                // 새 계좌에서 차감/입금
-                if (newFromAccountId) {
-                    const newAccount = assets.find(a => a.id === parseInt(newFromAccountId));
-                    if (newAccount) {
-                        if (transactionType === 'expense') {
-                            newAccount.amount -= amount;
-                        } else {
-                            newAccount.amount += amount;
-                        }
-                        newAccount.updatedAt = new Date().toISOString();
-                    }
-                }
-                
                 dailyExpenses[expenseIndex] = {
                     ...dailyExpenses[expenseIndex],
                     date: date,
@@ -3135,14 +2537,12 @@
                     amount: amount,
                     paymentMethod: paymentMethod,
                     type: transactionType,
-                    category: category,
-                    fromAccountId: newFromAccountId ? parseInt(newFromAccountId) : null
+                    category: category
                 };
 
                 saveData();
                 updateDisplay();
                 renderDailyList();
-                renderAssetsList(); // 자산 목록도 업데이트
                 
                 if (currentView === 'calendar') {
                     renderCalendar();
@@ -3171,22 +2571,12 @@
 
         // 데이터 내보내기 (JSON 파일로 다운로드)
         function exportData() {
-            console.log('내보내기 시작...');
-            console.log('assets 데이터:', assets);
-            console.log('customCategories 데이터:', customCategories);
-            
             const data = {
                 salaries: salaries,
                 fixedExpenses: fixedExpenses,
                 dailyExpenses: dailyExpenses,
-                customCategories: customCategories,
-                assets: assets,
-                assetTransactions: assetTransactions,
-                exportDate: new Date().toISOString(),
-                version: '2.0'
+                exportDate: new Date().toISOString()
             };
-
-            console.log('내보낼 전체 데이터:', data);
 
             const jsonStr = JSON.stringify(data, null, 2);
             const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -3214,13 +2604,13 @@
                     const data = JSON.parse(e.target.result);
                     
                     // 데이터 유효성 검사
-                    if (!data.salaries && !data.fixedExpenses && !data.dailyExpenses && !data.assets) {
+                    if (!data.salaries && !data.fixedExpenses && !data.dailyExpenses) {
                         alert('올바른 가계부 데이터 파일이 아닙니다.');
                         return;
                     }
 
                     // 데이터 병합 여부 확인
-                    if (salaries.length > 0 || fixedExpenses.length > 0 || dailyExpenses.length > 0 || assets.length > 0 || customCategories.length > 0) {
+                    if (salaries.length > 0 || fixedExpenses.length > 0 || dailyExpenses.length > 0) {
                         const merge = confirm('기존 데이터가 있습니다. 기존 데이터를 유지하고 새 데이터를 추가하시겠습니까?\n\n확인: 데이터 병합\n취소: 기존 데이터 삭제 후 가져오기');
                         
                         if (merge) {
@@ -3228,26 +2618,17 @@
                             salaries = [...salaries, ...(data.salaries || [])];
                             fixedExpenses = [...fixedExpenses, ...(data.fixedExpenses || [])];
                             dailyExpenses = [...dailyExpenses, ...(data.dailyExpenses || [])];
-                            customCategories = [...customCategories, ...(data.customCategories || [])];
-                            assets = [...assets, ...(data.assets || [])];
-                            assetTransactions = [...assetTransactions, ...(data.assetTransactions || [])];
                         } else {
                             // 데이터 교체
                             salaries = data.salaries || [];
                             fixedExpenses = data.fixedExpenses || [];
                             dailyExpenses = data.dailyExpenses || [];
-                            customCategories = data.customCategories || [];
-                            assets = data.assets || [];
-                            assetTransactions = data.assetTransactions || [];
                         }
                     } else {
                         // 기존 데이터가 없으면 그냥 가져오기
                         salaries = data.salaries || [];
                         fixedExpenses = data.fixedExpenses || [];
                         dailyExpenses = data.dailyExpenses || [];
-                        customCategories = data.customCategories || [];
-                        assets = data.assets || [];
-                        assetTransactions = data.assetTransactions || [];
                     }
 
                     // 월급 날짜순 정렬
@@ -3258,10 +2639,6 @@
                     renderSalaryList();
                     renderFixedList();
                     renderDailyList();
-                    renderAssetsList();
-                    renderCustomCategoryList();
-                    updateAllCategorySelects();
-                    updateAccountDropdowns();
                     
                     if (currentView === 'calendar') {
                         renderCalendar();
