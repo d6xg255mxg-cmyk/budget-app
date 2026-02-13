@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" id="pwa-manifest">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
     <title>가계부</title>
     <style>
         * {
@@ -182,6 +188,104 @@
         .amount-hidden {
             letter-spacing: 4px;
         }
+
+        .asset-type-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .asset-type-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.2s;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .asset-type-tab:last-child {
+            border-right: none;
+        }
+
+        .asset-type-tab.active {
+            background: #212529;
+            color: white;
+        }
+
+        .asset-type-tab:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .asset-type-content {
+            display: none;
+        }
+
+        .asset-type-content.active {
+            display: block;
+        }
+
+        .coin-search-results {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            background: white;
+            display: none;
+        }
+
+        .coin-search-results.active {
+            display: block;
+        }
+
+        .coin-search-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.15s;
+        }
+
+        .coin-search-item:hover {
+            background: #f8f9fa;
+        }
+
+        .coin-search-item img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .coin-search-item .coin-symbol {
+            color: #6c757d;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .asset-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .asset-badge.fiat { background: #e3f2fd; color: #1565c0; }
+        .asset-badge.crypto { background: #fff3e0; color: #e65100; }
+        .asset-badge.stock { background: #e8f5e9; color: #2e7d32; }
 
         .balance-item {
             display: flex;
@@ -949,10 +1053,192 @@
                 margin: 10px 0;
             }
         }
+
+        /* ===== Dark Mode ===== */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --border-color: #e9ecef;
+            --border-light: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --text-muted: #6c757d;
+            --shadow: rgba(0,0,0,0.08);
+            --hero-bg: linear-gradient(135deg, #212529 0%, #343a40 100%);
+        }
+
+        body.dark-mode {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --border-color: #1a3a5c;
+            --border-light: #1a3a5c;
+            --text-primary: #e4e6eb;
+            --text-secondary: #b0b3b8;
+            --text-muted: #8a8d91;
+            --shadow: rgba(0,0,0,0.3);
+            --hero-bg: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+        }
+
+        body { background: var(--bg-secondary); color: var(--text-primary); }
+        .container { background: var(--bg-primary); box-shadow: 0 2px 8px var(--shadow); }
+        .header { background: var(--bg-primary); border-bottom-color: var(--border-color); }
+        .header h1 { color: var(--text-primary); }
+        .balance-summary { background: var(--bg-secondary); border-color: var(--border-color); }
+        .balance-item { color: var(--text-secondary); }
+        .balance-item.total { border-top-color: var(--border-light); color: var(--text-primary); }
+        .balance-hero { background: var(--hero-bg); }
+        .tabs { background: var(--bg-primary); border-bottom-color: var(--border-color); }
+        .tab { background: var(--bg-primary); color: var(--text-muted); }
+        .tab.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+        .tab:hover { background: var(--bg-secondary); }
+        .content { background: var(--bg-primary); }
+        .list-item { border-bottom-color: var(--border-color); }
+        .list-item-name { color: var(--text-primary); }
+        .list-item-detail { color: var(--text-muted); }
+        .input-group label { color: var(--text-secondary); }
+        .input-group input, .input-group select { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-light); }
+        .month-selector span { color: var(--text-primary); }
+        .month-selector button { background: var(--bg-primary); border-color: var(--border-light); color: var(--text-primary); }
+        .monthly-summary { background: var(--bg-secondary); border-color: var(--border-color); }
+        .monthly-summary-title { color: var(--text-secondary); }
+        .monthly-summary-label { color: var(--text-muted); }
+        .monthly-summary-value { color: var(--text-primary); }
+        .modal-content { background: var(--bg-primary); }
+        .modal-header { border-bottom-color: var(--border-color); }
+        .modal-header h3 { color: var(--text-primary); }
+        .calendar-day { background: var(--bg-primary); border-color: var(--border-color); }
+        .calendar-weekday { color: var(--text-muted); }
+        .empty-state p { color: var(--text-muted); }
+        .upload-area { background: var(--bg-secondary); border-color: var(--border-light); }
+        .category-badge { background: var(--bg-secondary); color: var(--text-secondary); }
+        .edit-form .input-group input, .edit-form .input-group select { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-light); }
+        .view-toggle button { background: var(--bg-primary); color: var(--text-muted); border-color: var(--border-light); }
+        .view-toggle button.active { background: var(--text-primary); color: var(--bg-primary); }
+        .data-management { background: var(--bg-secondary); border-color: var(--border-color); }
+        .lang-selector select { background: var(--bg-primary); color: var(--text-secondary); border-color: var(--border-light); }
+        .asset-type-tab { background: var(--bg-primary); color: var(--text-muted); border-color: var(--border-light); }
+        .asset-type-tab.active { background: var(--text-primary); color: var(--bg-primary); }
+        .coin-search-results { background: var(--bg-primary); border-color: var(--border-light); }
+        .coin-search-item { border-bottom-color: var(--border-color); }
+        .coin-search-item:hover { background: var(--bg-secondary); }
+        .payment-badge { color: var(--text-secondary); }
+
+        .dark-toggle {
+            position: absolute;
+            top: 15px;
+            right: 140px;
+            z-index: 10;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        .dark-toggle:hover { background: var(--border-light); }
+
+        /* ===== Search Bar ===== */
+        .search-filter-bar {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .search-filter-bar input {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .search-filter-bar select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* ===== Budget Progress ===== */
+        .budget-section { margin-bottom: 20px; }
+        .budget-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .budget-bar-track {
+            height: 10px;
+            background: var(--bg-secondary);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .budget-bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        .budget-bar-fill.ok { background: linear-gradient(90deg, #69db7c, #51cf66); }
+        .budget-bar-fill.warn { background: linear-gradient(90deg, #ffd43b, #fab005); }
+        .budget-bar-fill.over { background: linear-gradient(90deg, #ff8787, #fa5252); }
+
+        /* ===== Charts ===== */
+        .chart-container {
+            position: relative;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .chart-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .chart-box {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        /* ===== Google Drive ===== */
+        .gdrive-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .gdrive-btn:hover { background: #3367d6; }
+        .gdrive-btn:disabled { background: #a0c4ff; cursor: not-allowed; }
+
+        @media (max-width: 600px) {
+            .dark-toggle { right: 120px; top: 12px; }
+            .chart-row { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <button class="dark-toggle" onclick="toggleDarkMode()" id="darkToggle" title="Dark mode">🌙</button>
         <div class="lang-selector">
             <select id="langSelect" onchange="changeLanguage(this.value)">
                 <option value="ko">🇰🇷 한국어</option>
@@ -1033,6 +1319,10 @@
                     <div class="data-buttons">
                         <button class="btn btn-secondary" onclick="exportData()" data-i18n="export">💾 내보내기</button>
                         <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()" data-i18n="import">📂 가져오기</button>
+                        <button class="gdrive-btn" onclick="saveToGDrive()" id="gdriveSaveBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l4.58 7.5h13.54l4.58-7.5L17.29 3.5H7.71zm-.28 1h2.87l-5.57 9.15-.01.02L2.97 15.5 7.43 4.5zm3.87 0h2.4l5.57 9.15-1.74 2.85H6.47L4.73 13.65 11.3 4.5zM19 15.5l-4.46 6H9.46L5 15.5h14z"/></svg>
+                            Google Drive
+                        </button>
                         <input type="file" id="importFile" accept=".json" onchange="importData(event)">
                     </div>
                 </div>
@@ -1192,6 +1482,20 @@
                 </div>
 
                 <div id="dailyListView">
+                    <!-- Search / Filter -->
+                    <div class="search-filter-bar">
+                        <input type="text" id="expenseSearch" data-i18n-placeholder="searchExpenses" placeholder="지출 항목 검색..." oninput="filterDailyList()">
+                        <select id="categoryFilter" onchange="filterDailyList()">
+                            <option value="" data-i18n="allCategories">전체 카테고리</option>
+                        </select>
+                        <select id="paymentFilter" onchange="filterDailyList()">
+                            <option value="" data-i18n="allPayments">전체 결제수단</option>
+                            <option value="regular" data-i18n="regularCard">💳 일반카드 (통장)</option>
+                            <option value="crypto" data-i18n="cryptoCard">🪙 가상화폐카드</option>
+                            <option value="income" data-i18n="income">💰 수입</option>
+                        </select>
+                    </div>
+
                     <!-- 월별 총 지출 요약 -->
                     <div class="monthly-summary" style="margin-bottom: 20px;">
                         <div class="monthly-summary-title" data-i18n="monthlyTotal">📊 이번 달 총계</div>
@@ -1280,32 +1584,101 @@
                 <!-- 자산 추가 폼 -->
                 <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
                     <h3 style="margin-bottom: 15px;" data-i18n="addEditAsset">자산 추가/수정</h3>
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label data-i18n="platformName">플랫폼명</label>
-                            <input type="text" id="assetPlatform" data-i18n-placeholder="platformPlaceholder" placeholder="예: 한국 신한은행, 독일 Deutsche Bank">
+                    
+                    <!-- Asset Type Tabs -->
+                    <div class="asset-type-tabs">
+                        <button class="asset-type-tab active" onclick="switchAssetType('fiat', event)">🏦 <span data-i18n="assetTypeFiat">법정화폐</span></button>
+                        <button class="asset-type-tab" onclick="switchAssetType('crypto', event)">🪙 <span data-i18n="assetTypeCrypto">암호화폐</span></button>
+                        <button class="asset-type-tab" onclick="switchAssetType('stock', event)">📈 <span data-i18n="assetTypeStock">주식</span></button>
+                    </div>
+
+                    <!-- Fiat Form -->
+                    <div id="assetFormFiat" class="asset-type-content active">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label data-i18n="platformName">플랫폼명</label>
+                                <input type="text" id="fiatPlatform" data-i18n-placeholder="platformPlaceholder" placeholder="예: 한국 신한은행, 독일 Deutsche Bank">
+                            </div>
+                            <div class="input-group">
+                                <label data-i18n="currency">통화</label>
+                                <select id="fiatCurrency">
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="KRW">KRW (₩)</option>
+                                    <option value="USD">USD ($)</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label data-i18n="currency">통화</label>
-                            <select id="assetCurrency">
-                                <option value="EUR">EUR (€)</option>
-                                <option value="KRW">KRW (₩)</option>
-                                <option value="USD">USD ($)</option>
-                                <option value="BTC">BTC (₿)</option>
-                                <option value="ETH">ETH (Ξ)</option>
-                            </select>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label data-i18n="balance">잔고</label>
+                                <input type="number" id="fiatAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력" step="0.01">
+                            </div>
+                            <div class="input-group">
+                                <label data-i18n="memoOptional">메모 (선택)</label>
+                                <input type="text" id="fiatMemo" data-i18n-placeholder="memoPlaceholder" placeholder="예: 비상금, 투자용">
+                            </div>
                         </div>
                     </div>
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label data-i18n="balance">잔고</label>
-                            <input type="number" id="assetAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력" step="0.01">
+
+                    <!-- Crypto Form -->
+                    <div id="assetFormCrypto" class="asset-type-content">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label data-i18n="platformName">플랫폼명</label>
+                                <input type="text" id="cryptoPlatform" placeholder="예: Binance, Coinbase, MetaMask">
+                            </div>
+                            <div class="input-group">
+                                <label data-i18n="selectCoin">코인 선택</label>
+                                <div style="position: relative;">
+                                    <input type="text" id="cryptoSearch" autocomplete="off" data-i18n-placeholder="searchCoin" placeholder="검색 (예: BTC, Solana, XRP...)" oninput="searchCoin(this.value)" onfocus="searchCoin(this.value)">
+                                    <div class="coin-search-results" id="coinSearchResults"></div>
+                                </div>
+                                <input type="hidden" id="selectedCoinId">
+                                <input type="hidden" id="selectedCoinSymbol">
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label data-i18n="memoOptional">메모 (선택)</label>
-                            <input type="text" id="assetMemo" data-i18n-placeholder="memoPlaceholder" placeholder="예: 비상금, 투자용">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label data-i18n="quantity">수량</label>
+                                <input type="number" id="cryptoAmount" data-i18n-placeholder="enterQuantity" placeholder="보유 수량" step="0.00000001">
+                            </div>
+                            <div class="input-group">
+                                <label data-i18n="memoOptional">메모 (선택)</label>
+                                <input type="text" id="cryptoMemo" data-i18n-placeholder="memoPlaceholder" placeholder="예: 장기 보유, 스테이킹">
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Stock Form -->
+                    <div id="assetFormStock" class="asset-type-content">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label data-i18n="platformName">플랫폼명</label>
+                                <input type="text" id="stockPlatform" placeholder="예: Trade Republic, Interactive Brokers">
+                            </div>
+                            <div class="input-group">
+                                <label data-i18n="stockTicker">종목 티커</label>
+                                <input type="text" id="stockTicker" data-i18n-placeholder="tickerPlaceholder" placeholder="예: AAPL, TSLA, 005930.KS" style="text-transform: uppercase;">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label data-i18n="shares">보유 주수</label>
+                                <input type="number" id="stockShares" data-i18n-placeholder="enterShares" placeholder="주식 수량" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label data-i18n="pricePerShare">주당 가격 (€)</label>
+                                <input type="number" id="stockPrice" data-i18n-placeholder="currentPrice" placeholder="현재 주당 가격" step="0.01">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label data-i18n="memoOptional">메모 (선택)</label>
+                                <input type="text" id="stockMemo" placeholder="예: 장기 투자, 배당주">
+                            </div>
+                        </div>
+                    </div>
+
                     <button class="btn" onclick="addOrUpdateAsset()" data-i18n="add">추가</button>
                 </div>
 
@@ -1331,16 +1704,65 @@
             <!-- 통계 탭 -->
             <div id="statsTab" class="tab-content">
                 <h2 style="margin-bottom: 20px;" data-i18n="categoryAnalysis">📊 카테고리별 지출 분석</h2>
-                
+
+                <!-- Budget Goals -->
+                <div class="monthly-summary" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="monthly-summary-title" data-i18n="budgetGoals">🎯 예산 목표</div>
+                        <button class="btn" onclick="showBudgetSetup()" style="padding: 6px 14px; font-size: 13px;" data-i18n="setBudget">설정</button>
+                    </div>
+                    <div id="budgetGoalsDisplay" style="margin-top: 10px;"></div>
+                </div>
+
+                <!-- Budget Setup (hidden by default) -->
+                <div id="budgetSetupPanel" style="display:none; background: var(--bg-secondary); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 12px;" data-i18n="setBudgetGoals">🎯 예산 목표 설정</h4>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label data-i18n="totalBudget">총 예산 (€)</label>
+                            <input type="number" id="totalBudgetInput" placeholder="예: 1500" step="10">
+                        </div>
+                    </div>
+                    <div id="categoryBudgetInputs" style="margin-top: 10px;"></div>
+                    <div style="margin-top: 12px; display: flex; gap: 10px;">
+                        <button class="btn" onclick="saveBudgetGoals()" data-i18n="save">저장</button>
+                        <button class="btn btn-secondary" onclick="hideBudgetSetup()" data-i18n="cancel">취소</button>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="chart-row">
+                    <div class="chart-box">
+                        <div class="chart-container">
+                            <h4 style="margin-bottom: 10px; color: var(--text-primary);" data-i18n="categoryDonut">카테고리별 지출</h4>
+                            <canvas id="donutChart" width="300" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <div class="chart-container">
+                            <h4 style="margin-bottom: 10px; color: var(--text-primary);" data-i18n="monthlyComparison">월별 지출 비교</h4>
+                            <canvas id="barChart" width="300" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Month-over-month comparison -->
+                <div class="monthly-summary" style="margin-bottom: 20px;">
+                    <div class="monthly-summary-title" data-i18n="vsLastMonth">지난달 대비</div>
+                    <div id="momComparison" style="margin-top: 10px;"></div>
+                </div>
+
+                <!-- Category breakdown -->
                 <div class="monthly-summary" style="margin-bottom: 20px;">
                     <div class="monthly-summary-title" data-i18n="monthlyCategoryExpense">이번 달 카테고리별 지출</div>
                     <div id="categoryStats"></div>
                 </div>
 
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; color: #495057; border: 1px solid #e9ecef;">
-                    <h4 style="margin-bottom: 10px; color: #212529;" data-i18n="categoryGuide">💡 카테고리 안내</h4>
+                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; color: var(--text-secondary); border: 1px solid var(--border-color);">
+                    <h4 style="margin-bottom: 10px; color: var(--text-primary);" data-i18n="categoryGuide">💡 카테고리 안내</h4>
                     <p data-i18n="categoryGuideDesc">AI가 자동으로 지출 항목을 분류합니다. 수정이 필요한 경우 일별지출 탭에서 각 항목을 수정할 수 있습니다.</p>
                 </div>
+            </div>
             </div>
         </div>
     </div>
@@ -1536,6 +1958,30 @@
                 catEntertainment: '문화생활', catSubscription: '구독료',
                 catMedical: '의료', catEducation: '교육', catOther: '기타', catIncome: '수입',
                 enterPlatformAndBalance: '플랫폼명과 잔고를 입력해주세요.',
+                assetTypeFiat: '법정화폐', assetTypeCrypto: '암호화폐', assetTypeStock: '주식',
+                selectCoin: '코인 선택', searchCoin: '검색 (예: BTC, Solana, XRP...)',
+                quantity: '수량', enterQuantity: '보유 수량',
+                stockTicker: '종목 티커', tickerPlaceholder: '예: AAPL, TSLA, 005930.KS',
+                shares: '주', enterShares: '주식 수량',
+                pricePerShare: '주당 가격 (€)', currentPrice: '현재 주당 가격',
+                noCoinFound: '코인을 찾을 수 없습니다',
+                priceLoading: '가격 로딩 중...',
+                priceFailed: '가격 조회 실패',
+                searchExpenses: '지출 항목 검색...',
+                allCategories: '전체 카테고리', allPayments: '전체 결제수단',
+                budgetGoals: '🎯 예산 목표', setBudget: '설정',
+                setBudgetGoals: '🎯 예산 목표 설정',
+                totalBudget: '총 예산 (€)',
+                budgetSaved: '예산 목표가 저장되었습니다!',
+                noBudgetSet: '예산 목표를 설정해주세요.',
+                spent: '지출', remaining2: '남은 금액', over: '초과',
+                categoryDonut: '카테고리별 지출', monthlyComparison: '월별 지출 비교',
+                vsLastMonth: '📈 지난달 대비',
+                noLastMonthData: '지난달 데이터가 없습니다.',
+                increased: '증가', decreased: '감소', same: '동일',
+                gdriveSaving: 'Google Drive 저장 중...',
+                gdriveSaved: 'Google Drive에 저장됨!',
+                gdriveError: 'Google Drive 연결 실패',
                 weekdays: ['일', '월', '화', '수', '목', '금', '토'],
                 monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
             },
@@ -1652,6 +2098,30 @@
                 catEntertainment: 'Entertainment', catSubscription: 'Subscription',
                 catMedical: 'Medical', catEducation: 'Education', catOther: 'Other', catIncome: 'Income',
                 enterPlatformAndBalance: 'Please enter platform name and balance.',
+                assetTypeFiat: 'Fiat', assetTypeCrypto: 'Crypto', assetTypeStock: 'Stock',
+                selectCoin: 'Select Coin', searchCoin: 'Search (e.g. BTC, Solana, XRP...)',
+                quantity: 'Quantity', enterQuantity: 'Amount held',
+                stockTicker: 'Stock Ticker', tickerPlaceholder: 'e.g. AAPL, TSLA, MSFT',
+                shares: 'shares', enterShares: 'Number of shares',
+                pricePerShare: 'Price per Share (€)', currentPrice: 'Current price per share',
+                noCoinFound: 'No coin found',
+                priceLoading: 'Loading price...',
+                priceFailed: 'Price unavailable',
+                searchExpenses: 'Search expenses...',
+                allCategories: 'All Categories', allPayments: 'All Payments',
+                budgetGoals: '🎯 Budget Goals', setBudget: 'Set',
+                setBudgetGoals: '🎯 Set Budget Goals',
+                totalBudget: 'Total Budget (€)',
+                budgetSaved: 'Budget goals saved!',
+                noBudgetSet: 'Set your budget goals.',
+                spent: 'Spent', remaining2: 'Remaining', over: 'Over',
+                categoryDonut: 'Category Breakdown', monthlyComparison: 'Monthly Comparison',
+                vsLastMonth: '📈 vs. Last Month',
+                noLastMonthData: 'No data from last month.',
+                increased: 'increase', decreased: 'decrease', same: 'same',
+                gdriveSaving: 'Saving to Google Drive...',
+                gdriveSaved: 'Saved to Google Drive!',
+                gdriveError: 'Google Drive connection failed',
                 weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
                 monthNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
             },
@@ -1768,6 +2238,30 @@
                 catEntertainment: 'Unterhaltung', catSubscription: 'Abos',
                 catMedical: 'Gesundheit', catEducation: 'Bildung', catOther: 'Sonstiges', catIncome: 'Einnahme',
                 enterPlatformAndBalance: 'Bitte Plattform und Kontostand eingeben.',
+                assetTypeFiat: 'Fiatwährung', assetTypeCrypto: 'Kryptowährung', assetTypeStock: 'Aktien',
+                selectCoin: 'Coin wählen', searchCoin: 'Suche (z.B. BTC, Solana, XRP...)',
+                quantity: 'Menge', enterQuantity: 'Bestand',
+                stockTicker: 'Aktien-Ticker', tickerPlaceholder: 'z.B. AAPL, TSLA, SAP.DE',
+                shares: 'Aktien', enterShares: 'Anzahl Aktien',
+                pricePerShare: 'Preis pro Aktie (€)', currentPrice: 'Aktueller Kurs',
+                noCoinFound: 'Kein Coin gefunden',
+                priceLoading: 'Preis wird geladen...',
+                priceFailed: 'Preis nicht verfügbar',
+                searchExpenses: 'Ausgaben suchen...',
+                allCategories: 'Alle Kategorien', allPayments: 'Alle Zahlungsarten',
+                budgetGoals: '🎯 Budgetziele', setBudget: 'Einst.',
+                setBudgetGoals: '🎯 Budgetziele festlegen',
+                totalBudget: 'Gesamtbudget (€)',
+                budgetSaved: 'Budgetziele gespeichert!',
+                noBudgetSet: 'Bitte Budgetziele festlegen.',
+                spent: 'Ausgegeben', remaining2: 'Übrig', over: 'Über',
+                categoryDonut: 'Kategorienaufteilung', monthlyComparison: 'Monatsvergleich',
+                vsLastMonth: '📈 Vormonatsvergleich',
+                noLastMonthData: 'Keine Daten vom Vormonat.',
+                increased: 'Anstieg', decreased: 'Rückgang', same: 'gleich',
+                gdriveSaving: 'Speichern in Google Drive...',
+                gdriveSaved: 'In Google Drive gespeichert!',
+                gdriveError: 'Google Drive-Verbindung fehlgeschlagen',
                 weekdays: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
                 monthNames: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
             }
@@ -1824,6 +2318,11 @@
             // Update rate status
             if (ratesLastUpdated) {
                 updateRateStatusUI('success');
+            }
+            updateCategoryFilterOptions();
+            if (document.getElementById('statsTab')?.classList.contains('active')) {
+                renderBudgetGoals();
+                updateCharts();
             }
             // Re-apply privacy after re-render
             applyPrivacy();
@@ -1902,10 +2401,14 @@
 
         // Update hero total assets section
         function updateHeroAssets() {
-            // Calculate total assets in EUR
             let totalAssetsEUR = 0;
             assets.forEach(asset => {
-                totalAssetsEUR += asset.amount * exchangeRates[asset.currency];
+                if (asset.assetType === 'stock') {
+                    totalAssetsEUR += asset.amount * (asset.pricePerShare || 0);
+                } else {
+                    const rate = exchangeRates[asset.currency] || 0;
+                    totalAssetsEUR += asset.amount * rate;
+                }
             });
 
             const heroEl = document.getElementById('heroTotalAssets');
@@ -1939,15 +2442,154 @@
         // 환율 (기본값 - 실시간 API로 업데이트됨)
         let exchangeRates = {
             'EUR': 1,
-            'KRW': 0.00073,
-            'USD': 0.92,
-            'BTC': 85000,
-            'ETH': 2500
         };
         let ratesLastUpdated = null;
         let ratesLoading = false;
+        let ratesFetchDone = false;
+        let currentAssetType = 'fiat';
+        let rateRefreshTimer = null;
 
-        // 실시간 환율 + 코인 가격 조회
+        // 로컬스토리지에서 캐시된 환율 복원
+        function loadCachedRates() {
+            try {
+                const cached = localStorage.getItem('budgetAppRatesCache');
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    Object.assign(exchangeRates, data.rates);
+                    if (data.timestamp) {
+                        ratesLastUpdated = new Date(data.timestamp);
+                    }
+                    console.log('Cached rates loaded:', Object.keys(data.rates).length, 'currencies');
+                }
+            } catch(e) { console.warn('Rate cache load failed:', e); }
+        }
+
+        // 환율 캐시 저장
+        function saveCachedRates() {
+            try {
+                localStorage.setItem('budgetAppRatesCache', JSON.stringify({
+                    rates: exchangeRates,
+                    timestamp: ratesLastUpdated ? ratesLastUpdated.toISOString() : null
+                }));
+            } catch(e) { console.warn('Rate cache save failed:', e); }
+        }
+
+        // 캐시된 환율 즉시 로드
+        loadCachedRates();
+
+        // Popular coins with CoinGecko IDs
+        const popularCoins = [
+            { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin' },
+            { id: 'ethereum', symbol: 'ETH', name: 'Ethereum' },
+            { id: 'solana', symbol: 'SOL', name: 'Solana' },
+            { id: 'ripple', symbol: 'XRP', name: 'XRP' },
+            { id: 'cardano', symbol: 'ADA', name: 'Cardano' },
+            { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin' },
+            { id: 'polkadot', symbol: 'DOT', name: 'Polkadot' },
+            { id: 'avalanche-2', symbol: 'AVAX', name: 'Avalanche' },
+            { id: 'chainlink', symbol: 'LINK', name: 'Chainlink' },
+            { id: 'polygon-ecosystem-token', symbol: 'POL', name: 'Polygon' },
+            { id: 'toncoin', symbol: 'TON', name: 'Toncoin' },
+            { id: 'shiba-inu', symbol: 'SHIB', name: 'Shiba Inu' },
+            { id: 'litecoin', symbol: 'LTC', name: 'Litecoin' },
+            { id: 'uniswap', symbol: 'UNI', name: 'Uniswap' },
+            { id: 'cosmos', symbol: 'ATOM', name: 'Cosmos' },
+            { id: 'stellar', symbol: 'XLM', name: 'Stellar' },
+            { id: 'tether', symbol: 'USDT', name: 'Tether' },
+            { id: 'usd-coin', symbol: 'USDC', name: 'USD Coin' },
+            { id: 'binancecoin', symbol: 'BNB', name: 'BNB' },
+            { id: 'tron', symbol: 'TRX', name: 'TRON' },
+            { id: 'sui', symbol: 'SUI', name: 'Sui' },
+            { id: 'aptos', symbol: 'APT', name: 'Aptos' },
+            { id: 'near', symbol: 'NEAR', name: 'NEAR Protocol' },
+            { id: 'arbitrum', symbol: 'ARB', name: 'Arbitrum' },
+            { id: 'optimism', symbol: 'OP', name: 'Optimism' },
+            { id: 'pepe', symbol: 'PEPE', name: 'Pepe' },
+            { id: 'render-token', symbol: 'RENDER', name: 'Render' },
+            { id: 'fetch-ai', symbol: 'FET', name: 'Fetch.ai' },
+        ];
+
+        // Asset type switching
+        function switchAssetType(type, evt) {
+            currentAssetType = type;
+            document.querySelectorAll('.asset-type-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.asset-type-content').forEach(c => c.classList.remove('active'));
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('active');
+            } else {
+                // Fallback: find the correct tab
+                document.querySelectorAll('.asset-type-tab').forEach(tab => {
+                    if (tab.textContent.toLowerCase().includes(type)) tab.classList.add('active');
+                });
+            }
+            document.getElementById('assetForm' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
+        }
+
+        // Coin search
+        function searchCoin(query) {
+            const resultsEl = document.getElementById('coinSearchResults');
+            if (!query || query.length < 1) {
+                // Show popular coins
+                renderCoinResults(popularCoins.slice(0, 10));
+                return;
+            }
+            const q = query.toLowerCase();
+            const matches = popularCoins.filter(c =>
+                c.symbol.toLowerCase().includes(q) ||
+                c.name.toLowerCase().includes(q) ||
+                c.id.toLowerCase().includes(q)
+            );
+            renderCoinResults(matches.length > 0 ? matches : []);
+        }
+
+        function renderCoinResults(coins) {
+            const resultsEl = document.getElementById('coinSearchResults');
+            if (coins.length === 0) {
+                resultsEl.innerHTML = `<div style="padding: 12px; color: #6c757d; font-size: 14px;">${t('noCoinFound') || 'No coin found'}</div>`;
+                resultsEl.classList.add('active');
+                return;
+            }
+            resultsEl.innerHTML = coins.map(c => {
+                const price = exchangeRates[c.symbol];
+                const priceDisplay = price
+                    ? `<span style="color: #28a745; font-size: 13px;">€${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: price < 1 ? 6 : 2})}${ratesLastUpdated ? ' 📡' : ''}</span>`
+                    : `<span style="color: #adb5bd; font-size: 12px;">—</span>`;
+                return `
+                <div class="coin-search-item" onclick="selectCoin('${c.id}', '${c.symbol}', '${c.name}')">
+                    <div>
+                        <strong>${c.name}</strong>
+                        <span class="coin-symbol">${c.symbol}</span>
+                    </div>
+                    <span style="margin-left:auto;">${priceDisplay}</span>
+                </div>
+            `}).join('');
+            resultsEl.classList.add('active');
+        }
+
+        function selectCoin(id, symbol, name) {
+            document.getElementById('cryptoSearch').value = `${name} (${symbol})`;
+            document.getElementById('selectedCoinId').value = id;
+            document.getElementById('selectedCoinSymbol').value = symbol;
+            document.getElementById('coinSearchResults').classList.remove('active');
+        }
+
+        // Close coin search when clicking outside
+        document.addEventListener('click', (e) => {
+            const searchEl = document.getElementById('cryptoSearch');
+            const resultsEl = document.getElementById('coinSearchResults');
+            if (searchEl && resultsEl && !searchEl.contains(e.target) && !resultsEl.contains(e.target)) {
+                resultsEl.classList.remove('active');
+            }
+        });
+
+        // Timeout helper
+        function fetchTimeout(ms) {
+            const ctrl = new AbortController();
+            setTimeout(() => ctrl.abort(), ms);
+            return ctrl.signal;
+        }
+
+        // 실시간 환율 + 코인 가격 조회 (실제 거래소 API만 사용)
         async function fetchLiveRates() {
             if (ratesLoading) return;
             ratesLoading = true;
@@ -1956,47 +2598,189 @@
             let fiatOk = false;
             let cryptoOk = false;
 
-            // 1) 법정화폐 환율 (frankfurter.app - 무료, CORS 지원)
-            try {
-                const fiatRes = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,KRW');
-                if (fiatRes.ok) {
-                    const fiatData = await fiatRes.json();
-                    // frankfurter는 EUR 기준 → 1 KRW = 1/rate EUR
-                    if (fiatData.rates) {
-                        if (fiatData.rates.KRW) exchangeRates['KRW'] = 1 / fiatData.rates.KRW;
-                        if (fiatData.rates.USD) exchangeRates['USD'] = 1 / fiatData.rates.USD;
+            // ===== 1) 법정화폐 환율 =====
+            // API 1: Frankfurter (ECB 기반)
+            if (!fiatOk) {
+                try {
+                    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,KRW', { signal: fetchTimeout(8000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.rates?.KRW) exchangeRates['KRW'] = 1 / data.rates.KRW;
+                        if (data.rates?.USD) exchangeRates['USD'] = 1 / data.rates.USD;
                         fiatOk = true;
+                        console.log('✅ Fiat rates via Frankfurter');
                     }
-                }
-            } catch (e) {
-                console.warn('법정화폐 환율 조회 실패:', e);
+                } catch (e) { console.warn('Frankfurter failed:', e.message); }
+            }
+            // API 2: ExchangeRate-API (open)
+            if (!fiatOk) {
+                try {
+                    const res = await fetch('https://open.er-api.com/v6/latest/EUR', { signal: fetchTimeout(8000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.rates?.KRW) exchangeRates['KRW'] = 1 / data.rates.KRW;
+                        if (data.rates?.USD) exchangeRates['USD'] = 1 / data.rates.USD;
+                        fiatOk = true;
+                        console.log('✅ Fiat rates via ExchangeRate-API');
+                    }
+                } catch (e) { console.warn('ExchangeRate-API failed:', e.message); }
             }
 
-            // 2) 가상화폐 시세 (CoinGecko - 무료, CORS 지원)
-            try {
-                const cryptoRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur');
-                if (cryptoRes.ok) {
-                    const cryptoData = await cryptoRes.json();
-                    if (cryptoData.bitcoin?.eur) exchangeRates['BTC'] = cryptoData.bitcoin.eur;
-                    if (cryptoData.ethereum?.eur) exchangeRates['ETH'] = cryptoData.ethereum.eur;
-                    cryptoOk = true;
-                }
-            } catch (e) {
-                console.warn('가상화폐 시세 조회 실패:', e);
+            // ===== 2) 암호화폐 실시간 시세 =====
+            // 보유 + 인기 코인 ID 수집
+            const cryptoIds = new Set(popularCoins.map(c => c.id));
+            assets.forEach(a => {
+                if (a.assetType === 'crypto' && a.coingeckoId) cryptoIds.add(a.coingeckoId);
+            });
+
+            // API 1: CoinGecko (무료, EUR 직접 지원)
+            if (!cryptoOk) {
+                try {
+                    const idsParam = [...cryptoIds].join(',');
+                    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${idsParam}&vs_currencies=eur`, { signal: fetchTimeout(10000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        for (const coin of popularCoins) {
+                            if (data[coin.id]?.eur) exchangeRates[coin.symbol] = data[coin.id].eur;
+                        }
+                        assets.forEach(a => {
+                            if (a.assetType === 'crypto' && a.coingeckoId && data[a.coingeckoId]?.eur) {
+                                exchangeRates[a.currency] = data[a.coingeckoId].eur;
+                            }
+                        });
+                        if (data.bitcoin?.eur) exchangeRates['BTC'] = data.bitcoin.eur;
+                        if (data.ethereum?.eur) exchangeRates['ETH'] = data.ethereum.eur;
+                        cryptoOk = true;
+                        console.log('✅ Crypto prices via CoinGecko:', Object.keys(data).length, 'coins');
+                    }
+                } catch (e) { console.warn('CoinGecko failed:', e.message); }
             }
+
+            // API 2: CoinCap (USD 기반 → EUR 변환)
+            if (!cryptoOk) {
+                try {
+                    const res = await fetch('https://api.coincap.io/v2/assets?limit=100', { signal: fetchTimeout(8000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const usdToEur = exchangeRates['USD'] || 0.92;
+                        if (data.data) {
+                            data.data.forEach(coin => {
+                                const sym = coin.symbol.toUpperCase();
+                                const priceEur = parseFloat(coin.priceUsd) * usdToEur;
+                                if (priceEur > 0) exchangeRates[sym] = priceEur;
+                            });
+                            cryptoOk = true;
+                            console.log('✅ Crypto prices via CoinCap:', data.data.length, 'coins');
+                        }
+                    }
+                } catch (e) { console.warn('CoinCap failed:', e.message); }
+            }
+
+            // API 3: Binance (주요 코인 EUR/USDT 쌍)
+            if (!cryptoOk) {
+                try {
+                    const res = await fetch('https://api.binance.com/api/v3/ticker/price', { signal: fetchTimeout(8000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const usdToEur = exchangeRates['USD'] || 0.92;
+                        // symbol → price map for USDT pairs
+                        const priceMap = {};
+                        data.forEach(t => { priceMap[t.symbol] = parseFloat(t.price); });
+
+                        // EUR pairs first
+                        for (const coin of popularCoins) {
+                            const eurPair = coin.symbol + 'EUR';
+                            const usdtPair = coin.symbol + 'USDT';
+                            if (priceMap[eurPair]) {
+                                exchangeRates[coin.symbol] = priceMap[eurPair];
+                            } else if (priceMap[usdtPair]) {
+                                exchangeRates[coin.symbol] = priceMap[usdtPair] * usdToEur;
+                            }
+                        }
+                        // Check assets too
+                        assets.forEach(a => {
+                            if (a.assetType === 'crypto') {
+                                const eurP = a.currency + 'EUR';
+                                const usdtP = a.currency + 'USDT';
+                                if (priceMap[eurP]) exchangeRates[a.currency] = priceMap[eurP];
+                                else if (priceMap[usdtP]) exchangeRates[a.currency] = priceMap[usdtP] * usdToEur;
+                            }
+                        });
+                        if (exchangeRates['BTC'] || priceMap['BTCEUR'] || priceMap['BTCUSDT']) {
+                            cryptoOk = true;
+                            console.log('✅ Crypto prices via Binance');
+                        }
+                    }
+                } catch (e) { console.warn('Binance failed:', e.message); }
+            }
+
+            // API 4: Kraken (유럽 거래소, EUR 직접)
+            if (!cryptoOk) {
+                try {
+                    const krakenPairs = ['XXBTZEUR','XETHZEUR','SOLEUR','XRPEUR','ADAEUR','DOTEUR','LINKEUR','DOGEEUR'];
+                    const res = await fetch(`https://api.kraken.com/0/public/Ticker?pair=${krakenPairs.join(',')}`, { signal: fetchTimeout(8000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.result) {
+                            const krakenMap = {
+                                'XXBTZEUR': 'BTC', 'XETHZEUR': 'ETH', 'SOLEUR': 'SOL', 'XRPEUR': 'XRP',
+                                'ADAEUR': 'ADA', 'DOTEUR': 'DOT', 'LINKEUR': 'LINK', 'DOGEEUR': 'DOGE'
+                            };
+                            for (const [pair, sym] of Object.entries(krakenMap)) {
+                                if (data.result[pair]?.c?.[0]) {
+                                    exchangeRates[sym] = parseFloat(data.result[pair].c[0]);
+                                }
+                            }
+                            cryptoOk = true;
+                            console.log('✅ Crypto prices via Kraken');
+                        }
+                    }
+                } catch (e) { console.warn('Kraken failed:', e.message); }
+            }
+
+            // ===== 3) 주식 시세 =====
+            const stockAssets = assets.filter(a => a.assetType === 'stock' && a.ticker);
+            for (const stock of stockAssets) {
+                try {
+                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${stock.ticker}?interval=1d&range=1d`)}`;
+                    const res = await fetch(proxyUrl, { signal: fetchTimeout(8000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+                        const currency = data?.chart?.result?.[0]?.meta?.currency;
+                        if (price) {
+                            let priceInEUR = price;
+                            if (currency === 'USD' && exchangeRates['USD']) priceInEUR = price * exchangeRates['USD'];
+                            else if (currency === 'KRW' && exchangeRates['KRW']) priceInEUR = price * exchangeRates['KRW'];
+                            stock.pricePerShare = priceInEUR;
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Stock ${stock.ticker} fetch failed:`, e.message);
+                }
+            }
+            if (stockAssets.length > 0) saveData();
 
             ratesLoading = false;
+            ratesFetchDone = true;
 
             if (fiatOk || cryptoOk) {
                 ratesLastUpdated = new Date();
+                saveCachedRates();
                 updateRateStatusUI('success');
             } else {
                 updateRateStatusUI('error');
             }
 
-            // 자산 목록 재렌더링
             renderAssetsList();
             updateDisplay();
+
+            // 5분마다 자동 갱신
+            if (rateRefreshTimer) clearInterval(rateRefreshTimer);
+            rateRefreshTimer = setInterval(() => {
+                console.log('Auto-refreshing rates...');
+                fetchLiveRates();
+            }, 5 * 60 * 1000);
         }
 
         // 환율 상태 UI 업데이트
@@ -2005,67 +2789,110 @@
             if (!statusEl) return;
 
             if (status === 'loading') {
-                statusEl.innerHTML = `<span style="color: #6c757d;">${t('rateLoading')}</span>`;
+                statusEl.innerHTML = `<span style="color: #6c757d;">⏳ CoinGecko · Binance · Kraken ${t('rateLoading').replace('⏳ ','')}</span>`;
             } else if (status === 'success') {
-                const timeStr = ratesLastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-                const krwRate = (1 / exchangeRates['KRW']).toFixed(0);
-                statusEl.innerHTML = `<span style="color: #28a745;">✅ ${timeStr} ${t('rateUpdated')}</span><br>` +
-                    `<span style="color: #6c757d; font-size: 12px;">` +
-                    `1 USD = €${exchangeRates['USD'].toFixed(4)} · ` +
-                    `1,000 KRW = €${(exchangeRates['KRW'] * 1000).toFixed(4)} · ` +
-                    `1 BTC = €${exchangeRates['BTC'].toLocaleString()} · ` +
-                    `1 ETH = €${exchangeRates['ETH'].toLocaleString()}</span>`;
+                const locale = currentLang === 'ko' ? 'ko-KR' : currentLang === 'de' ? 'de-DE' : 'en-US';
+                const timeStr = ratesLastUpdated.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+                let rateInfo = '';
+                if (exchangeRates['USD']) rateInfo += `USD = €${exchangeRates['USD'].toFixed(4)}`;
+                if (exchangeRates['BTC']) rateInfo += ` · BTC = €${exchangeRates['BTC'].toLocaleString()}`;
+                if (exchangeRates['ETH']) rateInfo += ` · ETH = €${exchangeRates['ETH'].toLocaleString()}`;
+                if (exchangeRates['SOL']) rateInfo += ` · SOL = €${exchangeRates['SOL'].toFixed(2)}`;
+                statusEl.innerHTML = `<span style="color: #28a745;">✅ ${t('rateUpdated')} ${timeStr}</span>` +
+                    `<span style="color: #6c757d; font-size: 11px; margin-left: 8px;">⟳ 5min</span><br>` +
+                    `<span style="color: #6c757d; font-size: 12px;">${rateInfo}</span>`;
             } else if (status === 'error') {
-                statusEl.innerHTML = `<span style="color: #dc3545;">${t('rateError')}</span>`;
+                const hasCache = ratesLastUpdated !== null;
+                if (hasCache) {
+                    const locale = currentLang === 'ko' ? 'ko-KR' : currentLang === 'de' ? 'de-DE' : 'en-US';
+                    const timeStr = ratesLastUpdated.toLocaleString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    statusEl.innerHTML = `<span style="color: #e67700;">⚠️ API 연결 실패 — ${t('rateUpdated')} ${timeStr} (cached)</span>`;
+                } else {
+                    const msg = currentLang === 'ko' ? '❌ 거래소 API 연결 불가 — GitHub Pages 배포 후 실시간 시세가 반영됩니다' :
+                                currentLang === 'de' ? '❌ Börsen-API nicht erreichbar — Live-Kurse nach GitHub Pages Deployment' :
+                                '❌ Exchange API unavailable — Live prices will work after deploying to GitHub Pages';
+                    statusEl.innerHTML = `<span style="color: #dc3545; font-size: 13px;">${msg}</span>`;
+                }
             }
         }
 
-        // 통화 기호 매핑
+        // 통화 기호 매핑 (동적 확장)
         const currencySymbols = {
-            'EUR': '€',
-            'KRW': '₩',
-            'USD': '$',
-            'BTC': '₿',
-            'ETH': 'Ξ'
+            'EUR': '€', 'KRW': '₩', 'USD': '$',
+            'BTC': '₿', 'ETH': 'Ξ'
         };
+
+        function getCurrencySymbol(code) {
+            return currencySymbols[code] || code + ' ';
+        }
 
         // 자산 추가/수정
         function addOrUpdateAsset() {
-            const platform = document.getElementById('assetPlatform').value.trim();
-            const currency = document.getElementById('assetCurrency').value;
-            const amount = parseFloat(document.getElementById('assetAmount').value);
-            const memo = document.getElementById('assetMemo').value.trim();
+            let asset = null;
 
-            if (!platform || !amount) {
-                alert(t('enterPlatformAndBalance'));
-                return;
+            if (currentAssetType === 'fiat') {
+                const platform = document.getElementById('fiatPlatform').value.trim();
+                const currency = document.getElementById('fiatCurrency').value;
+                const amount = parseFloat(document.getElementById('fiatAmount').value);
+                const memo = document.getElementById('fiatMemo').value.trim();
+
+                if (!platform || !amount) { alert(t('enterPlatformAndBalance')); return; }
+
+                asset = { assetType: 'fiat', platform, currency, amount, memo };
+
+                document.getElementById('fiatPlatform').value = '';
+                document.getElementById('fiatAmount').value = '';
+                document.getElementById('fiatMemo').value = '';
+                document.getElementById('fiatCurrency').value = 'EUR';
+
+            } else if (currentAssetType === 'crypto') {
+                const platform = document.getElementById('cryptoPlatform').value.trim();
+                const coinId = document.getElementById('selectedCoinId').value;
+                const coinSymbol = document.getElementById('selectedCoinSymbol').value;
+                const amount = parseFloat(document.getElementById('cryptoAmount').value);
+                const memo = document.getElementById('cryptoMemo').value.trim();
+
+                if (!platform || !coinId || !amount) { alert(t('enterPlatformAndBalance')); return; }
+
+                asset = { assetType: 'crypto', platform, currency: coinSymbol.toUpperCase(), coingeckoId: coinId, amount, memo };
+
+                document.getElementById('cryptoPlatform').value = '';
+                document.getElementById('cryptoSearch').value = '';
+                document.getElementById('selectedCoinId').value = '';
+                document.getElementById('selectedCoinSymbol').value = '';
+                document.getElementById('cryptoAmount').value = '';
+                document.getElementById('cryptoMemo').value = '';
+
+            } else if (currentAssetType === 'stock') {
+                const platform = document.getElementById('stockPlatform').value.trim();
+                const ticker = document.getElementById('stockTicker').value.trim().toUpperCase();
+                const shares = parseFloat(document.getElementById('stockShares').value);
+                const price = parseFloat(document.getElementById('stockPrice').value);
+                const memo = document.getElementById('stockMemo').value.trim();
+
+                if (!platform || !ticker || !shares) { alert(t('enterPlatformAndBalance')); return; }
+
+                asset = { assetType: 'stock', platform, currency: ticker, ticker, amount: shares, pricePerShare: price || 0, memo };
+
+                document.getElementById('stockPlatform').value = '';
+                document.getElementById('stockTicker').value = '';
+                document.getElementById('stockShares').value = '';
+                document.getElementById('stockPrice').value = '';
+                document.getElementById('stockMemo').value = '';
             }
 
-            // 같은 플랫폼이 이미 있는지 확인
-            const existingIndex = assets.findIndex(a => a.platform === platform && a.currency === currency);
+            if (!asset) return;
+
+            // Check for existing same platform + currency
+            const existingIndex = assets.findIndex(a => a.platform === asset.platform && a.currency === asset.currency);
 
             if (existingIndex !== -1) {
-                // 업데이트
-                assets[existingIndex].amount = amount;
-                assets[existingIndex].memo = memo;
-                assets[existingIndex].updatedAt = new Date().toISOString();
+                assets[existingIndex] = { ...assets[existingIndex], ...asset, updatedAt: new Date().toISOString() };
             } else {
-                // 새로 추가
-                assets.push({
-                    id: Date.now(),
-                    platform: platform,
-                    currency: currency,
-                    amount: amount,
-                    memo: memo,
-                    createdAt: new Date().toISOString()
-                });
+                asset.id = Date.now();
+                asset.createdAt = new Date().toISOString();
+                assets.push(asset);
             }
-
-            // 입력 필드 초기화
-            document.getElementById('assetPlatform').value = '';
-            document.getElementById('assetAmount').value = '';
-            document.getElementById('assetMemo').value = '';
-            document.getElementById('assetCurrency').value = 'EUR';
 
             saveData();
             renderAssetsList();
@@ -2073,11 +2900,10 @@
 
         // 자산 삭제
         function deleteAsset(id) {
-            if (confirm(t('deleteAssetConfirm'))) {
-                assets = assets.filter(a => a.id !== id);
-                saveData();
-                renderAssetsList();
-            }
+            assets = assets.filter(a => a.id !== id);
+            saveData();
+            renderAssetsList();
+            updateDisplay();
         }
 
         // 자산 목록 렌더링
@@ -2092,35 +2918,91 @@
                     </div>
                 `;
                 document.getElementById('totalAssetsEUR').textContent = '€0.00';
+                updateHeroAssets();
                 return;
             }
 
-            // 총 자산 계산 (EUR 기준)
             let totalEUR = 0;
             
-            let html = '';
-            assets.forEach(asset => {
-                const symbol = currencySymbols[asset.currency];
-                const valueInEUR = asset.amount * exchangeRates[asset.currency];
-                totalEUR += valueInEUR;
+            // Group by type
+            const fiatAssets = assets.filter(a => !a.assetType || a.assetType === 'fiat');
+            const cryptoAssets = assets.filter(a => a.assetType === 'crypto' || (!a.assetType && ['BTC','ETH'].includes(a.currency)));
+            const stockAssets = assets.filter(a => a.assetType === 'stock');
 
-                html += `
-                    <div class="list-item">
-                        <div class="list-item-info">
-                            <div class="list-item-name">
-                                ${asset.platform}
-                                ${asset.memo ? `<span style="color: #6c757d; font-size: 13px; margin-left: 8px;">(${asset.memo})</span>` : ''}
+            let html = '';
+
+            function renderAssetGroup(groupAssets, groupLabel, badgeClass) {
+                if (groupAssets.length === 0) return '';
+                let groupHtml = `<div style="margin-bottom: 16px;"><h4 style="color: #6c757d; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">${groupLabel}</h4>`;
+                
+                groupAssets.forEach(asset => {
+                    let valueInEUR = 0;
+                    let displayAmount = '';
+                    let symbol = getCurrencySymbol(asset.currency);
+                    let priceAvailable = true;
+
+                    if (asset.assetType === 'stock') {
+                        const price = asset.pricePerShare || 0;
+                        valueInEUR = asset.amount * price;
+                        displayAmount = `${asset.amount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 3})} ${t('shares') || 'shares'}`;
+                        if (price > 0) {
+                            displayAmount += ` × €${price.toFixed(2)}`;
+                        } else {
+                            priceAvailable = false;
+                        }
+                    } else {
+                        const rate = exchangeRates[asset.currency] || 0;
+                        valueInEUR = asset.amount * rate;
+                        displayAmount = `${symbol}${asset.amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8})} ${asset.currency}`;
+                        if (asset.currency !== 'EUR' && rate === 0) {
+                            priceAvailable = false;
+                        }
+                    }
+                    
+                    if (priceAvailable) {
+                        totalEUR += valueInEUR;
+                    }
+
+                    const typeIcon = asset.assetType === 'stock' ? '📈' : asset.assetType === 'crypto' ? '🪙' : '🏦';
+
+                    // 가격 표시: 실시간 / 폴백 / 로딩 중 / 실패 구분
+                    let valueDisplay = '';
+                    if (asset.currency === 'EUR' && asset.assetType !== 'stock') {
+                        valueDisplay = '';
+                    } else if (!priceAvailable && !ratesFetchDone) {
+                        valueDisplay = `<span style="color: #e67700; margin-left: 8px; font-size: 12px;">⏳ ${t('priceLoading')}</span>`;
+                    } else if (!priceAvailable && ratesFetchDone) {
+                        valueDisplay = `<span style="color: #dc3545; margin-left: 8px; font-size: 12px;">❌ ${t('priceFailed') || 'Price unavailable'}</span>`;
+                    } else if (valueInEUR > 0 && ratesLastUpdated) {
+                        valueDisplay = `<span style="color: #28a745; margin-left: 8px; font-weight: 600;">≈ €${valueInEUR.toFixed(2)} 📡</span>`;
+                    } else if (valueInEUR > 0) {
+                        valueDisplay = `<span style="color: #e67700; margin-left: 8px; font-weight: 600;">≈ €${valueInEUR.toFixed(2)} ⚠️</span>`;
+                    }
+                    
+                    groupHtml += `
+                        <div class="list-item">
+                            <div class="list-item-info" style="min-width: 0; flex: 1;">
+                                <div class="list-item-name" style="display: flex; align-items: center; flex-wrap: wrap;">
+                                    ${typeIcon} ${asset.platform}
+                                    <span class="asset-badge ${badgeClass}">${asset.currency}</span>
+                                    ${asset.memo ? `<span style="color: #6c757d; font-size: 12px; margin-left: 4px;">(${asset.memo})</span>` : ''}
+                                </div>
+                                <div class="list-item-detail" style="font-size: 13px;">
+                                    ${displayAmount}
+                                    ${valueDisplay}
+                                </div>
                             </div>
-                            <div class="list-item-detail">
-                                ${symbol}${asset.amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8})}
-                                ${asset.currency}
-                                ${asset.currency !== 'EUR' ? `<span style="color: #6c757d; margin-left: 8px;">≈ €${valueInEUR.toFixed(2)}${ratesLastUpdated ? ' 📡' : ''}</span>` : ''}
-                            </div>
+                            <button class="btn btn-delete" onclick="deleteAsset(${asset.id})">${t('delete')}</button>
                         </div>
-                        <button class="btn btn-delete" onclick="deleteAsset(${asset.id})">${t('delete')}</button>
-                    </div>
-                `;
-            });
+                    `;
+                });
+                groupHtml += '</div>';
+                return groupHtml;
+            }
+
+            html += renderAssetGroup(fiatAssets, `🏦 ${t('assetTypeFiat') || 'Fiat'}`, 'fiat');
+            html += renderAssetGroup(cryptoAssets, `🪙 ${t('assetTypeCrypto') || 'Crypto'}`, 'crypto');
+            html += renderAssetGroup(stockAssets, `📈 ${t('assetTypeStock') || 'Stock'}`, 'stock');
 
             list.innerHTML = html;
             document.getElementById('totalAssetsEUR').textContent = `€${totalEUR.toFixed(2)}${ratesLastUpdated ? ' ' + t('liveTag') : ''}`;
@@ -2243,6 +3125,7 @@
         function updateAllCategorySelects() {
             renderCategoryOptions('categorySelect', true);
             renderCategoryOptions('editCategory', false);
+            updateCategoryFilterOptions();
         }
 
         // 로컬 스토리지에서 데이터 불러오기
@@ -2322,6 +3205,12 @@
             updateViewMonthDisplay();
             updateDisplay();
             renderDailyList();
+            // Update stats if visible
+            if (document.getElementById('statsTab')?.classList.contains('active')) {
+                renderCategoryStats();
+                renderBudgetGoals();
+                updateCharts();
+            }
         }
 
         // 메인 화면 월 표시 업데이트
@@ -2352,7 +3241,7 @@
 
         // 탭 전환
         function switchTab(evt, tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
             evt.currentTarget.classList.add('active');
@@ -2361,6 +3250,8 @@
             // 통계 탭으로 전환 시 통계 렌더링
             if (tab === 'stats') {
                 renderCategoryStats();
+                renderBudgetGoals();
+                updateCharts();
             }
         }
 
@@ -3560,6 +4451,392 @@
             }
         }
 
+
+        // ===== Dark Mode =====
+        let darkMode = localStorage.getItem('budgetDarkMode') === 'true';
+        
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            applyDarkMode();
+            localStorage.setItem('budgetDarkMode', darkMode);
+        }
+        
+        function applyDarkMode() {
+            document.body.classList.toggle('dark-mode', darkMode);
+            const btn = document.getElementById('darkToggle');
+            if (btn) btn.textContent = darkMode ? '☀️' : '🌙';
+            document.querySelector('meta[name="theme-color"]').content = darkMode ? '#1a1a2e' : '#212529';
+            // Update charts if they exist
+            if (typeof updateCharts === 'function') updateCharts();
+        }
+
+        // ===== Search / Filter =====
+        function filterDailyList() {
+            const searchTerm = (document.getElementById('expenseSearch')?.value || '').toLowerCase();
+            const catFilter = document.getElementById('categoryFilter')?.value || '';
+            const payFilter = document.getElementById('paymentFilter')?.value || '';
+            
+            const items = document.querySelectorAll('#dailyList .list-item');
+            items.forEach(item => {
+                const name = (item.querySelector('.list-item-name')?.textContent || '').toLowerCase();
+                const matchSearch = !searchTerm || name.includes(searchTerm);
+                const matchCat = !catFilter || name.includes(getCategoryDisplayName(catFilter));
+                let matchPay = true;
+                if (payFilter) {
+                    if (payFilter === 'income') matchPay = item.classList.contains('income');
+                    else if (payFilter === 'crypto') matchPay = name.includes(t('cryptoBadge'));
+                    else if (payFilter === 'regular') matchPay = name.includes(t('regularBadge'));
+                }
+                item.style.display = (matchSearch && matchCat && matchPay) ? '' : 'none';
+            });
+        }
+
+        function updateCategoryFilterOptions() {
+            const sel = document.getElementById('categoryFilter');
+            if (!sel) return;
+            const allCats = getAllCategories();
+            let html = `<option value="">${t('allCategories')}</option>`;
+            allCats.forEach(c => {
+                html += `<option value="${c.name}">${c.emoji} ${getCategoryDisplayName(c.name)}</option>`;
+            });
+            sel.innerHTML = html;
+        }
+
+        // ===== Budget Goals =====
+        let budgetGoals = JSON.parse(localStorage.getItem('budgetGoals') || '{}');
+
+        function showBudgetSetup() {
+            document.getElementById('budgetSetupPanel').style.display = 'block';
+            document.getElementById('totalBudgetInput').value = budgetGoals.total || '';
+            
+            const container = document.getElementById('categoryBudgetInputs');
+            const cats = getAllCategories().filter(c => c.name !== '수입');
+            container.innerHTML = cats.map(c => `
+                <div class="input-row" style="margin-bottom: 8px;">
+                    <div class="input-group" style="flex: 1;">
+                        <label>${c.emoji} ${getCategoryDisplayName(c.name)}</label>
+                        <input type="number" id="budget_${c.name}" value="${budgetGoals[c.name] || ''}" placeholder="€" step="10">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function hideBudgetSetup() {
+            document.getElementById('budgetSetupPanel').style.display = 'none';
+        }
+
+        function saveBudgetGoals() {
+            budgetGoals = {};
+            const total = parseFloat(document.getElementById('totalBudgetInput').value);
+            if (total) budgetGoals.total = total;
+            
+            getAllCategories().forEach(c => {
+                const input = document.getElementById('budget_' + c.name);
+                if (input && input.value) budgetGoals[c.name] = parseFloat(input.value);
+            });
+            
+            localStorage.setItem('budgetGoals', JSON.stringify(budgetGoals));
+            hideBudgetSetup();
+            renderBudgetGoals();
+            alert(t('budgetSaved'));
+        }
+
+        function renderBudgetGoals() {
+            const container = document.getElementById('budgetGoalsDisplay');
+            if (!container) return;
+            
+            if (!budgetGoals.total && Object.keys(budgetGoals).length === 0) {
+                container.innerHTML = `<p style="color: var(--text-muted); font-size: 14px;">${t('noBudgetSet')}</p>`;
+                return;
+            }
+
+            const year = currentViewMonth.getFullYear();
+            const month = currentViewMonth.getMonth();
+            const monthlyExp = getMonthlyExpenses(year, month).filter(e => e.type !== 'income');
+
+            let html = '<div class="budget-section">';
+            
+            // Total budget
+            if (budgetGoals.total) {
+                const totalSpent = monthlyExp.reduce((s, e) => s + e.amount, 0);
+                const pct = Math.min((totalSpent / budgetGoals.total) * 100, 100);
+                const cls = pct > 100 ? 'over' : pct > 80 ? 'warn' : 'ok';
+                const overAmt = totalSpent - budgetGoals.total;
+                html += `
+                    <div class="budget-item">
+                        <div class="budget-header">
+                            <span style="font-weight: 600;">📊 ${t('totalBudget').replace(' (€)', '')}</span>
+                            <span style="font-size: 14px; color: var(--text-muted);">
+                                ${formatCurrency(totalSpent)} / ${formatCurrency(budgetGoals.total)}
+                                ${overAmt > 0 ? `<span style="color: #fa5252; font-weight: 600;"> (+${formatCurrency(overAmt)} ${t('over')})</span>` : ''}
+                            </span>
+                        </div>
+                        <div class="budget-bar-track"><div class="budget-bar-fill ${cls}" style="width: ${Math.min(pct, 100)}%"></div></div>
+                    </div>`;
+            }
+
+            // Per-category budgets
+            getAllCategories().filter(c => budgetGoals[c.name]).forEach(cat => {
+                const catSpent = monthlyExp.filter(e => e.category === cat.name).reduce((s, e) => s + e.amount, 0);
+                const budget = budgetGoals[cat.name];
+                const pct = (catSpent / budget) * 100;
+                const cls = pct > 100 ? 'over' : pct > 80 ? 'warn' : 'ok';
+                html += `
+                    <div class="budget-item">
+                        <div class="budget-header">
+                            <span>${cat.emoji} ${getCategoryDisplayName(cat.name)}</span>
+                            <span style="font-size: 13px; color: var(--text-muted);">${formatCurrency(catSpent)} / ${formatCurrency(budget)}</span>
+                        </div>
+                        <div class="budget-bar-track"><div class="budget-bar-fill ${cls}" style="width: ${Math.min(pct, 100)}%"></div></div>
+                    </div>`;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // ===== Charts =====
+        let donutChartInst = null;
+        let barChartInst = null;
+
+        function updateCharts() {
+            renderDonutChart();
+            renderBarChart();
+            renderMoMComparison();
+        }
+
+        function renderDonutChart() {
+            const canvas = document.getElementById('donutChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const year = currentViewMonth.getFullYear();
+            const month = currentViewMonth.getMonth();
+            const monthlyExp = getMonthlyExpenses(year, month).filter(e => e.type !== 'income');
+
+            const categoryTotals = {};
+            monthlyExp.forEach(e => {
+                const cat = e.category || '기타';
+                categoryTotals[cat] = (categoryTotals[cat] || 0) + e.amount;
+            });
+
+            const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+            const labels = sorted.map(([cat]) => getCategoryDisplayName(cat));
+            const data = sorted.map(([, amt]) => amt);
+            const colors = ['#667eea','#764ba2','#f093fb','#f5576c','#4facfe','#43e97b','#fa709a','#fee140','#a18cd1','#fbc2eb'];
+
+            if (donutChartInst) donutChartInst.destroy();
+            const textColor = darkMode ? '#e4e6eb' : '#212529';
+            donutChartInst = new Chart(canvas, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderWidth: 0 }] },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: textColor, padding: 12, font: { size: 12 } } }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        function renderBarChart() {
+            const canvas = document.getElementById('barChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const labels = [];
+            const expenses = [];
+            const incomes = [];
+            const now = new Date(currentViewMonth);
+
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const y = d.getFullYear(), m = d.getMonth();
+                const mLabel = typeof t('monthNames') === 'object' ? t('monthNames')[m] : (m + 1) + '월';
+                labels.push(mLabel);
+                
+                const mExp = getMonthlyExpenses(y, m);
+                expenses.push(mExp.filter(e => e.type !== 'income').reduce((s, e) => s + e.amount, 0));
+                incomes.push(mExp.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0));
+            }
+
+            if (barChartInst) barChartInst.destroy();
+            const textColor = darkMode ? '#e4e6eb' : '#212529';
+            const gridColor = darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            barChartInst = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: t('expense').replace('💸 ', ''), data: expenses, backgroundColor: '#ff6b6b', borderRadius: 4 },
+                        { label: t('income').replace('💰 ', ''), data: incomes, backgroundColor: '#51cf66', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                        y: { ticks: { color: textColor, callback: v => '€' + v }, grid: { color: gridColor } }
+                    }
+                }
+            });
+        }
+
+        function renderMoMComparison() {
+            const container = document.getElementById('momComparison');
+            if (!container) return;
+
+            const y = currentViewMonth.getFullYear(), m = currentViewMonth.getMonth();
+            const prevDate = new Date(y, m - 1, 1);
+            const currExp = getMonthlyExpenses(y, m).filter(e => e.type !== 'income');
+            const prevExp = getMonthlyExpenses(prevDate.getFullYear(), prevDate.getMonth()).filter(e => e.type !== 'income');
+
+            const currTotal = currExp.reduce((s, e) => s + e.amount, 0);
+            const prevTotal = prevExp.reduce((s, e) => s + e.amount, 0);
+
+            if (prevTotal === 0) {
+                container.innerHTML = `<p style="color: var(--text-muted); font-size: 14px;">${t('noLastMonthData')}</p>`;
+                return;
+            }
+
+            const diff = currTotal - prevTotal;
+            const pctChange = ((diff / prevTotal) * 100).toFixed(1);
+            const isUp = diff > 0;
+            const arrow = isUp ? '📈' : diff < 0 ? '📉' : '➡️';
+            const color = isUp ? '#fa5252' : diff < 0 ? '#51cf66' : 'var(--text-muted)';
+            const label = isUp ? t('increased') : diff < 0 ? t('decreased') : t('same');
+
+            let html = `<div style="display: flex; align-items: center; gap: 15px; padding: 10px 0;">
+                <span style="font-size: 28px;">${arrow}</span>
+                <div>
+                    <div style="font-size: 20px; font-weight: 700; color: ${color};">${isUp ? '+' : ''}${pctChange}% ${label}</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">${formatCurrency(prevTotal)} → ${formatCurrency(currTotal)} (${isUp ? '+' : ''}${formatCurrency(diff)})</div>
+                </div>
+            </div>`;
+
+            // Per-category comparison
+            const allCats = new Set([...currExp.map(e => e.category), ...prevExp.map(e => e.category)]);
+            let catHtml = '';
+            allCats.forEach(cat => {
+                if (!cat) return;
+                const curr = currExp.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
+                const prev = prevExp.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
+                if (curr === 0 && prev === 0) return;
+                const d = prev > 0 ? (((curr - prev) / prev) * 100).toFixed(0) : (curr > 0 ? '+∞' : '0');
+                const c = curr > prev ? '#fa5252' : curr < prev ? '#51cf66' : 'var(--text-muted)';
+                const emoji = getCategoryEmoji(cat);
+                catHtml += `<div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--border-color);">
+                    <span>${emoji} ${getCategoryDisplayName(cat)}</span>
+                    <span style="color: ${c}; font-weight: 600;">${d > 0 ? '+' : ''}${d}% (${formatCurrency(curr)})</span>
+                </div>`;
+            });
+            if (catHtml) html += `<div style="margin-top: 10px;">${catHtml}</div>`;
+
+            container.innerHTML = html;
+        }
+
+        // ===== Google Drive Integration =====
+        const GDRIVE_API_KEY = ''; // User needs to set this
+        const GDRIVE_CLIENT_ID = ''; // User needs to set this
+        let gdriveReady = false;
+
+        function saveToGDrive() {
+            // If no API key configured, offer download + manual upload instructions
+            if (!GDRIVE_API_KEY || !GDRIVE_CLIENT_ID) {
+                // Fallback: Export and open Google Drive
+                exportData();
+                const driveUrl = 'https://drive.google.com/drive/my-drive';
+                if (confirm(currentLang === 'ko' 
+                    ? 'JSON 파일이 다운로드되었습니다. Google Drive를 열어서 업로드하시겠습니까?' 
+                    : currentLang === 'de'
+                    ? 'JSON-Datei wurde heruntergeladen. Google Drive öffnen zum Hochladen?'
+                    : 'JSON file downloaded. Open Google Drive to upload?')) {
+                    window.open(driveUrl, '_blank');
+                }
+                return;
+            }
+
+            // Full API integration
+            const btn = document.getElementById('gdriveSaveBtn');
+            btn.disabled = true;
+            btn.innerHTML = `⏳ ${t('gdriveSaving')}`;
+
+            gapi.load('client:auth2', async () => {
+                try {
+                    await gapi.client.init({
+                        apiKey: GDRIVE_API_KEY,
+                        clientId: GDRIVE_CLIENT_ID,
+                        scope: 'https://www.googleapis.com/auth/drive.file'
+                    });
+                    
+                    const authInst = gapi.auth2.getAuthInstance();
+                    if (!authInst.isSignedIn.get()) {
+                        await authInst.signIn();
+                    }
+
+                    const data = {
+                        salaries, fixedExpenses, dailyExpenses, customCategories, assets,
+                        exportDate: new Date().toISOString(),
+                        version: 'v2'
+                    };
+
+                    const boundary = '-------314159265358979323846';
+                    const metadata = JSON.stringify({
+                        name: 'budget-backup.json',
+                        mimeType: 'application/json'
+                    });
+                    const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
+
+                    await gapi.client.request({
+                        path: '/upload/drive/v3/files',
+                        method: 'POST',
+                        params: { uploadType: 'multipart' },
+                        headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+                        body: body
+                    });
+
+                    btn.innerHTML = `✅ ${t('gdriveSaved')}`;
+                    setTimeout(() => { btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l4.58 7.5h13.54l4.58-7.5L17.29 3.5H7.71z"/></svg> Google Drive'; btn.disabled = false; }, 3000);
+                } catch (e) {
+                    console.error('GDrive error:', e);
+                    btn.innerHTML = `❌ ${t('gdriveError')}`;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // ===== PWA Service Worker =====
+        function initPWA() {
+            // Dynamic manifest
+            const manifest = {
+                name: t('title').replace(/[^\w\s]/g, '').trim(),
+                short_name: 'Budget',
+                start_url: window.location.href.split('?')[0],
+                display: 'standalone',
+                background_color: darkMode ? '#1a1a2e' : '#ffffff',
+                theme_color: darkMode ? '#1a1a2e' : '#212529',
+                icons: [{ src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💰</text></svg>', sizes: '512x512', type: 'image/svg+xml' }]
+            };
+            const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+
+            // Service worker
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE = 'budget-v1';
+                    self.addEventListener('install', e => {
+                        e.waitUntil(caches.open(CACHE).then(c => c.addAll([self.location.href.replace('sw.js', '')])));
+                    });
+                    self.addEventListener('fetch', e => {
+                        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                    });
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(swBlob);
+                navigator.serviceWorker.register(swUrl).catch(() => {});
+            }
+        }
+
         // 페이지 로드 시 데이터 불러오기
         loadData();
 
@@ -3569,6 +4846,20 @@
 
         // 프라이버시 모드 적용
         applyPrivacy();
+
+        // Dark mode 적용
+        applyDarkMode();
+
+        // PWA 초기화
+        initPWA();
+
+        // 검색 필터 카테고리 옵션 초기화
+        updateCategoryFilterOptions();
+
+        // 캐시된 환율이 있으면 상태 표시
+        if (ratesLastUpdated) {
+            updateRateStatusUI('success');
+        }
 
         // 페이지 로드 시 실시간 환율 자동 조회
         fetchLiveRates();
