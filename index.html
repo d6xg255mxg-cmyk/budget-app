@@ -1230,6 +1230,32 @@
         .gdrive-btn:hover { background: #3367d6; }
         .gdrive-btn:disabled { background: #a0c4ff; cursor: not-allowed; }
 
+        /* ===== Collapsible Section ===== */
+        .section-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .section-toggle:hover { opacity: 0.8; }
+        .section-toggle .toggle-arrow {
+            transition: transform 0.3s;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .section-toggle.collapsed .toggle-arrow {
+            transform: rotate(-90deg);
+        }
+        .section-body {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            max-height: 2000px;
+        }
+        .section-body.collapsed {
+            max-height: 0;
+        }
+
         @media (max-width: 600px) {
             .dark-toggle { right: 120px; top: 12px; }
             .chart-row { flex-direction: column; }
@@ -1302,10 +1328,9 @@
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab(event, 'salary')" data-i18n="tabSalary">💵 월급</button>
-            <button class="tab" onclick="switchTab(event, 'fixed')" data-i18n="tabFixed">📌 고정지출</button>
             <button class="tab" onclick="switchTab(event, 'daily')" data-i18n="tabDaily">📅 일별지출</button>
             <button class="tab" onclick="switchTab(event, 'assets')" data-i18n="tabAssets">💎 자산</button>
-            <button class="tab" onclick="switchTab(event, 'stats')" data-i18n="tabStats">📊 통계</button>
+            <button class="tab" onclick="switchTab(event, 'stats')" data-i18n="tabStats">📊 예산/통계</button>
         </div>
 
         <div class="content">
@@ -1353,50 +1378,6 @@
             </div>
 
             <!-- 고정지출 탭 -->
-            <div id="fixedTab" class="tab-content">
-                <div class="image-upload-section">
-                    <h3 data-i18n="photoAutoInput">📸 사진으로 자동 입력</h3>
-                    <p style="font-size: 14px; color: #6c757d; margin-bottom: 15px;">
-                        <span data-i18n="photoAutoInputDesc">고정지출 내역이 적힌 사진을 업로드하면 자동으로 인식해서 입력합니다.</span>
-                    </p>
-                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageFile').click()">
-                        <div>📷</div>
-                        <p style="margin: 10px 0; font-weight: 600;" data-i18n="clickOrDrag">클릭하거나 이미지를 드래그하세요</p>
-                        <p style="font-size: 14px; color: #6c757d;" data-i18n="supportedFormats">PNG, JPG, JPEG 형식 지원</p>
-                    </div>
-                    <input type="file" id="imageFile" accept="image/*" onchange="handleImageUpload(event)">
-                    <img id="previewImage" class="preview-image" style="display: none;">
-                    <div class="loading" id="loading">
-                        <div class="spinner"></div>
-                        <p data-i18n="analyzingImage">이미지를 분석하고 있습니다...</p>
-                    </div>
-                </div>
-
-                <h2 style="margin-bottom: 20px;" data-i18n="addFixedExpense">고정지출 추가</h2>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label data-i18n="itemName">항목명</label>
-                        <input type="text" id="fixedName" data-i18n-placeholder="fixedNamePlaceholder" placeholder="예: 월세, 통신비, 보험료">
-                    </div>
-                    <div class="input-group">
-                        <label data-i18n="amountEuro">금액 (€)</label>
-                        <input type="number" id="fixedAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력">
-                    </div>
-                </div>
-                <button class="btn" onclick="addFixedExpense()" data-i18n="add">추가</button>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px;">
-                    <h3 style="margin: 0; color: #333;" data-i18n="fixedExpenseList">고정지출 목록</h3>
-                    <p style="font-size: 13px; color: #6c757d; margin: 0;" data-i18n="dragToReorder">💡 드래그해서 순서 변경</p>
-                </div>
-                
-                <div class="list" id="fixedList">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <p>${t('noFixedYet')}</p>
-                    </div>
-                </div>
-            </div>
 
             <!-- 일별지출 탭 -->
             <div id="dailyTab" class="tab-content">
@@ -1703,9 +1684,64 @@
 
             <!-- 통계 탭 -->
             <div id="statsTab" class="tab-content">
-                <h2 style="margin-bottom: 20px;" data-i18n="categoryAnalysis">📊 카테고리별 지출 분석</h2>
+                <h2 style="margin-bottom: 20px;" data-i18n="budgetAndStats">📊 예산 / 통계</h2>
 
-                <!-- Budget Goals -->
+                <!-- ===== 고정지출 섹션 (접기 가능) ===== -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <div class="section-toggle" onclick="toggleSection('fixedSection', this)">
+                        <h3 style="margin: 0; color: var(--text-primary);" data-i18n="fixedExpenses">📌 고정지출</h3>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="section-body" id="fixedSection">
+                        <!-- 사진 업로드 -->
+                        <div class="image-upload-section" style="margin-top: 15px;">
+                            <h4 style="margin-bottom: 8px;" data-i18n="photoAutoInput">📸 사진으로 자동 입력</h4>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+                                <span data-i18n="photoAutoInputDesc">고정지출 내역이 적힌 사진을 업로드하면 자동으로 인식해서 입력합니다.</span>
+                            </p>
+                            <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageFile').click()">
+                                <div>📷</div>
+                                <p style="margin: 10px 0; font-weight: 600;" data-i18n="clickOrDrag">클릭하거나 이미지를 드래그하세요</p>
+                                <p style="font-size: 14px; color: var(--text-muted);" data-i18n="supportedFormats">PNG, JPG, JPEG 형식 지원</p>
+                            </div>
+                            <input type="file" id="imageFile" accept="image/*" onchange="handleImageUpload(event)">
+                            <img id="previewImage" class="preview-image" style="display: none;">
+                            <div class="loading" id="loading">
+                                <div class="spinner"></div>
+                                <p data-i18n="analyzingImage">이미지를 분석하고 있습니다...</p>
+                            </div>
+                        </div>
+
+                        <!-- 고정지출 추가 폼 -->
+                        <div style="margin-top: 15px;">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label data-i18n="itemName">항목명</label>
+                                    <input type="text" id="fixedName" data-i18n-placeholder="fixedNamePlaceholder" placeholder="예: 월세, 통신비, 보험료">
+                                </div>
+                                <div class="input-group">
+                                    <label data-i18n="amountEuro">금액 (€)</label>
+                                    <input type="number" id="fixedAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력">
+                                </div>
+                            </div>
+                            <button class="btn" onclick="addFixedExpense()" data-i18n="add">추가</button>
+                        </div>
+
+                        <!-- 고정지출 목록 -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;">
+                            <h4 style="margin: 0; color: var(--text-primary);" data-i18n="fixedExpenseList">고정지출 목록</h4>
+                            <p style="font-size: 12px; color: var(--text-muted); margin: 0;" data-i18n="dragToReorder">💡 드래그해서 순서 변경</p>
+                        </div>
+                        <div class="list" id="fixedList">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <p>아직 고정지출 내역이 없습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 예산 목표 ===== -->
                 <div class="monthly-summary" style="margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="monthly-summary-title" data-i18n="budgetGoals">🎯 예산 목표</div>
@@ -1714,7 +1750,7 @@
                     <div id="budgetGoalsDisplay" style="margin-top: 10px;"></div>
                 </div>
 
-                <!-- Budget Setup (hidden by default) -->
+                <!-- Budget Setup (hidden) -->
                 <div id="budgetSetupPanel" style="display:none; background: var(--bg-secondary); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
                     <h4 style="margin-bottom: 12px;" data-i18n="setBudgetGoals">🎯 예산 목표 설정</h4>
                     <div class="input-row">
@@ -1730,7 +1766,7 @@
                     </div>
                 </div>
 
-                <!-- Charts -->
+                <!-- ===== 차트 ===== -->
                 <div class="chart-row">
                     <div class="chart-box">
                         <div class="chart-container">
@@ -1746,13 +1782,13 @@
                     </div>
                 </div>
 
-                <!-- Month-over-month comparison -->
+                <!-- 지난달 대비 -->
                 <div class="monthly-summary" style="margin-bottom: 20px;">
                     <div class="monthly-summary-title" data-i18n="vsLastMonth">지난달 대비</div>
                     <div id="momComparison" style="margin-top: 10px;"></div>
                 </div>
 
-                <!-- Category breakdown -->
+                <!-- 카테고리별 분석 -->
                 <div class="monthly-summary" style="margin-bottom: 20px;">
                     <div class="monthly-summary-title" data-i18n="monthlyCategoryExpense">이번 달 카테고리별 지출</div>
                     <div id="categoryStats"></div>
@@ -1762,7 +1798,6 @@
                     <h4 style="margin-bottom: 10px; color: var(--text-primary);" data-i18n="categoryGuide">💡 카테고리 안내</h4>
                     <p data-i18n="categoryGuideDesc">AI가 자동으로 지출 항목을 분류합니다. 수정이 필요한 경우 일별지출 탭에서 각 항목을 수정할 수 있습니다.</p>
                 </div>
-            </div>
             </div>
         </div>
     </div>
@@ -1850,8 +1885,9 @@
                 salary: '월급:', otherIncome: '+ 기타수입:', fixedExpense: '고정지출:',
                 cardExpense: '일반카드 지출:', cryptoCardExpense: '🪙 가상화폐카드 지출:',
                 remaining: '통장 남은 금액:',
-                tabSalary: '💵 월급', tabFixed: '📌 고정지출', tabDaily: '📅 일별지출',
-                tabAssets: '💎 자산', tabStats: '📊 통계',
+                tabSalary: '💵 월급', tabDaily: '📅 일별지출',
+                tabAssets: '💎 자산', tabStats: '📊 예산/통계',
+                budgetAndStats: '📊 예산 / 통계', fixedExpenses: '📌 고정지출',
                 dataManagement: '📁 데이터 관리',
                 dataManagementDesc: '데이터를 파일로 저장하거나 다른 기기에서 가져올 수 있습니다.',
                 export: '💾 내보내기', import: '📂 가져오기',
@@ -1992,8 +2028,9 @@
                 salary: 'Salary:', otherIncome: '+ Other Income:', fixedExpense: 'Fixed Expenses:',
                 cardExpense: 'Card Expenses:', cryptoCardExpense: '🪙 Crypto Card Expenses:',
                 remaining: 'Remaining Balance:',
-                tabSalary: '💵 Salary', tabFixed: '📌 Fixed', tabDaily: '📅 Daily',
-                tabAssets: '💎 Assets', tabStats: '📊 Stats',
+                tabSalary: '💵 Salary', tabDaily: '📅 Daily',
+                tabAssets: '💎 Assets', tabStats: '📊 Budget/Stats',
+                budgetAndStats: '📊 Budget / Stats', fixedExpenses: '📌 Fixed Expenses',
                 dataManagement: '📁 Data Management',
                 dataManagementDesc: 'Save data to file or import from another device.',
                 export: '💾 Export', import: '📂 Import',
@@ -2132,8 +2169,9 @@
                 salary: 'Gehalt:', otherIncome: '+ Sonstiges Einkommen:', fixedExpense: 'Fixkosten:',
                 cardExpense: 'Kartenausgaben:', cryptoCardExpense: '🪙 Krypto-Karte:',
                 remaining: 'Restbetrag:',
-                tabSalary: '💵 Gehalt', tabFixed: '📌 Fixkosten', tabDaily: '📅 Täglich',
-                tabAssets: '💎 Vermögen', tabStats: '📊 Statistik',
+                tabSalary: '💵 Gehalt', tabDaily: '📅 Täglich',
+                tabAssets: '💎 Vermögen', tabStats: '📊 Budget/Statistik',
+                budgetAndStats: '📊 Budget / Statistik', fixedExpenses: '📌 Fixkosten',
                 dataManagement: '📁 Datenverwaltung',
                 dataManagementDesc: 'Daten als Datei speichern oder von einem anderen Gerät importieren.',
                 export: '💾 Exportieren', import: '📂 Importieren',
@@ -3239,6 +3277,14 @@
             return salary ? salary.amount : 0;
         }
 
+        // ===== Collapsible sections =====
+        function toggleSection(sectionId, toggleEl) {
+            const body = document.getElementById(sectionId);
+            if (!body) return;
+            body.classList.toggle('collapsed');
+            if (toggleEl) toggleEl.classList.toggle('collapsed');
+        }
+
         // 탭 전환
         function switchTab(evt, tab) {
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -3247,8 +3293,9 @@
             evt.currentTarget.classList.add('active');
             document.getElementById(tab + 'Tab').classList.add('active');
             
-            // 통계 탭으로 전환 시 통계 렌더링
+            // 통계 탭으로 전환 시 통계 + 고정지출 렌더링
             if (tab === 'stats') {
+                renderFixedList();
                 renderCategoryStats();
                 renderBudgetGoals();
                 updateCharts();
