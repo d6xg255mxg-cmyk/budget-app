@@ -1688,11 +1688,15 @@
 
                 <!-- ===== 고정지출 섹션 (접기 가능) ===== -->
                 <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                    <div class="section-toggle" onclick="toggleSection('fixedSection', this)">
-                        <h3 style="margin: 0; color: var(--text-primary);" data-i18n="fixedExpenses">📌 고정지출</h3>
+                    <div class="section-toggle collapsed" onclick="toggleSection('fixedSection', this)">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <h3 style="margin: 0; color: var(--text-primary);" data-i18n="fixedExpenses">📌 고정지출</h3>
+                            <span id="fixedTotalBadge" style="font-size: 15px; font-weight: 700; color: #5c7cfa;"></span>
+                            <span id="fixedCountBadge" style="font-size: 12px; color: var(--text-muted);"></span>
+                        </div>
                         <span class="toggle-arrow">▼</span>
                     </div>
-                    <div class="section-body" id="fixedSection">
+                    <div class="section-body collapsed" id="fixedSection">
                         <!-- 사진 업로드 -->
                         <div class="image-upload-section" style="margin-top: 15px;">
                             <h4 style="margin-bottom: 8px;" data-i18n="photoAutoInput">📸 사진으로 자동 입력</h4>
@@ -3289,6 +3293,20 @@
             if (toggleEl) toggleEl.classList.toggle('collapsed');
         }
 
+        // 고정지출 총액 배지 업데이트
+        function updateFixedBadge() {
+            const totalEl = document.getElementById('fixedTotalBadge');
+            const countEl = document.getElementById('fixedCountBadge');
+            if (!totalEl) return;
+            const total = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+            totalEl.textContent = total > 0 ? formatCurrency(total) : '';
+            if (countEl) {
+                countEl.textContent = fixedExpenses.length > 0 
+                    ? `(${fixedExpenses.length}${currentLang === 'ko' ? '건' : currentLang === 'de' ? ' Posten' : ' items'})` 
+                    : '';
+            }
+        }
+
         // 탭 전환
         function switchTab(evt, tab) {
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -3300,6 +3318,7 @@
             // 통계 탭으로 전환 시 통계 + 고정지출 렌더링
             if (tab === 'stats') {
                 renderFixedList();
+                updateFixedBadge();
                 renderCategoryStats();
                 renderBudgetGoals();
                 updateCharts();
@@ -3417,6 +3436,7 @@
             updateDisplay();
             renderFixedList();
             renderBudgetGoals();
+            updateFixedBadge();
         }
         async function addDailyExpense() {
             const date = document.getElementById('dailyDate').value;
@@ -3661,6 +3681,7 @@
             updateDisplay();
             renderFixedList();
             renderBudgetGoals();
+            updateFixedBadge();
         }
 
         // 일별지출 삭제
