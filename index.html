@@ -1756,9 +1756,10 @@
                     <div class="input-row">
                         <div class="input-group">
                             <label data-i18n="totalBudget">총 예산 (€)</label>
-                            <input type="number" id="totalBudgetInput" placeholder="예: 1500" step="10">
+                            <input type="number" id="totalBudgetInput" placeholder="예: 1500" step="10" oninput="updateVariableBudgetPreview()">
                         </div>
                     </div>
+                    <div id="fixedInfoInSetup"></div>
                     <div id="categoryBudgetInputs" style="margin-top: 10px;"></div>
                     <div style="margin-top: 12px; display: flex; gap: 10px;">
                         <button class="btn" onclick="saveBudgetGoals()" data-i18n="save">저장</button>
@@ -2011,6 +2012,7 @@
                 budgetSaved: '예산 목표가 저장되었습니다!',
                 noBudgetSet: '예산 목표를 설정해주세요.',
                 spent: '지출', remaining2: '남은 금액', over: '초과',
+                fixedLabel: '고정', variableLabel: '변동', variableBudget: '변동지출 예산',
                 categoryDonut: '카테고리별 지출', monthlyComparison: '월별 지출 비교',
                 vsLastMonth: '📈 지난달 대비',
                 noLastMonthData: '지난달 데이터가 없습니다.',
@@ -2152,6 +2154,7 @@
                 budgetSaved: 'Budget goals saved!',
                 noBudgetSet: 'Set your budget goals.',
                 spent: 'Spent', remaining2: 'Remaining', over: 'Over',
+                fixedLabel: 'Fixed', variableLabel: 'Variable', variableBudget: 'Variable Budget',
                 categoryDonut: 'Category Breakdown', monthlyComparison: 'Monthly Comparison',
                 vsLastMonth: '📈 vs. Last Month',
                 noLastMonthData: 'No data from last month.',
@@ -2293,6 +2296,7 @@
                 budgetSaved: 'Budgetziele gespeichert!',
                 noBudgetSet: 'Bitte Budgetziele festlegen.',
                 spent: 'Ausgegeben', remaining2: 'Übrig', over: 'Über',
+                fixedLabel: 'Fix', variableLabel: 'Variabel', variableBudget: 'Variables Budget',
                 categoryDonut: 'Kategorienaufteilung', monthlyComparison: 'Monatsvergleich',
                 vsLastMonth: '📈 Vormonatsvergleich',
                 noLastMonthData: 'Keine Daten vom Vormonat.',
@@ -3412,9 +3416,8 @@
             saveData();
             updateDisplay();
             renderFixedList();
+            renderBudgetGoals();
         }
-
-        // 일별지출 추가
         async function addDailyExpense() {
             const date = document.getElementById('dailyDate').value;
             const name = document.getElementById('dailyName').value;
@@ -3657,6 +3660,7 @@
             saveData();
             updateDisplay();
             renderFixedList();
+            renderBudgetGoals();
         }
 
         // 일별지출 삭제
@@ -4556,6 +4560,23 @@
             document.getElementById('budgetSetupPanel').style.display = 'block';
             document.getElementById('totalBudgetInput').value = budgetGoals.total || '';
             
+            const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+            const fixedInfo = document.getElementById('fixedInfoInSetup');
+            if (fixedInfo) {
+                if (totalFixed > 0) {
+                    const items = fixedExpenses.map(f => `${f.name}: ${formatCurrency(f.amount)}`).join(', ');
+                    fixedInfo.innerHTML = `<div style="padding: 12px; background: ${darkMode ? '#1a3a5c' : '#e7f5ff'}; border-radius: 6px; font-size: 13px; color: ${darkMode ? '#a5d8ff' : '#1971c2'}; margin-top: 10px;">
+                        <div style="margin-bottom: 6px; font-weight: 600;">📌 ${t('fixedExpenses')}: ${formatCurrency(totalFixed)}/月</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">${items}</div>
+                        <div style="font-weight: 600;">💡 ${t('variableBudget')}: <span id="variableBudgetPreview" style="font-size: 16px;">${formatCurrency((budgetGoals.total || 0) - totalFixed)}</span></div>
+                    </div>`;
+                } else {
+                    fixedInfo.innerHTML = `<div style="padding: 10px; background: ${darkMode ? '#1a3a5c' : '#fff3bf'}; border-radius: 6px; font-size: 13px; color: ${darkMode ? '#ffd43b' : '#e67700'}; margin-top: 10px;">
+                        💡 ${currentLang === 'ko' ? '고정지출을 먼저 추가하면 변동 예산이 자동 계산됩니다.' : currentLang === 'de' ? 'Fixkosten hinzufügen für automatische Berechnung.' : 'Add fixed expenses first for automatic variable budget calculation.'}
+                    </div>`;
+                }
+            }
+
             const container = document.getElementById('categoryBudgetInputs');
             const cats = getAllCategories().filter(c => c.name !== '수입');
             container.innerHTML = cats.map(c => `
@@ -4570,6 +4591,15 @@
 
         function hideBudgetSetup() {
             document.getElementById('budgetSetupPanel').style.display = 'none';
+        }
+
+        function updateVariableBudgetPreview() {
+            const el = document.getElementById('variableBudgetPreview');
+            if (!el) return;
+            const total = parseFloat(document.getElementById('totalBudgetInput').value) || 0;
+            const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+            el.textContent = formatCurrency(total - totalFixed);
+            el.style.color = (total - totalFixed) < 0 ? '#fa5252' : '#1971c2';
         }
 
         function saveBudgetGoals() {
@@ -4592,25 +4622,41 @@
             const container = document.getElementById('budgetGoalsDisplay');
             if (!container) return;
             
+            const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+
             if (!budgetGoals.total && Object.keys(budgetGoals).length === 0) {
-                container.innerHTML = `<p style="color: var(--text-muted); font-size: 14px;">${t('noBudgetSet')}</p>`;
+                // 예산 미설정 시에도 고정지출 요약 표시
+                if (totalFixed > 0) {
+                    container.innerHTML = `
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">${t('noBudgetSet')}</p>
+                        <div style="padding: 10px; background: var(--bg-secondary); border-radius: 6px; font-size: 13px; color: var(--text-secondary);">
+                            📌 ${t('fixedExpenses')}: <strong>${formatCurrency(totalFixed)}</strong>/月
+                        </div>`;
+                } else {
+                    container.innerHTML = `<p style="color: var(--text-muted); font-size: 14px;">${t('noBudgetSet')}</p>`;
+                }
                 return;
             }
 
             const year = currentViewMonth.getFullYear();
             const month = currentViewMonth.getMonth();
-            const monthlyExp = getMonthlyExpenses(year, month).filter(e => e.type !== 'income');
+            const dailyExp = getMonthlyExpenses(year, month).filter(e => e.type !== 'income');
+            const totalDaily = dailyExp.reduce((s, e) => s + e.amount, 0);
+            const totalSpent = totalFixed + totalDaily;
 
             let html = '<div class="budget-section">';
             
-            // Total budget
+            // ===== 총 예산 =====
             if (budgetGoals.total) {
-                const totalSpent = monthlyExp.reduce((s, e) => s + e.amount, 0);
-                const pct = Math.min((totalSpent / budgetGoals.total) * 100, 100);
+                const pct = (totalSpent / budgetGoals.total) * 100;
+                const fixedPct = (totalFixed / budgetGoals.total) * 100;
+                const dailyPct = (totalDaily / budgetGoals.total) * 100;
                 const cls = pct > 100 ? 'over' : pct > 80 ? 'warn' : 'ok';
                 const overAmt = totalSpent - budgetGoals.total;
+                const remaining = budgetGoals.total - totalSpent;
+
                 html += `
-                    <div class="budget-item">
+                    <div class="budget-item" style="padding-bottom: 16px;">
                         <div class="budget-header">
                             <span style="font-weight: 600;">📊 ${t('totalBudget').replace(' (€)', '')}</span>
                             <span style="font-size: 14px; color: var(--text-muted);">
@@ -4618,28 +4664,88 @@
                                 ${overAmt > 0 ? `<span style="color: #fa5252; font-weight: 600;"> (+${formatCurrency(overAmt)} ${t('over')})</span>` : ''}
                             </span>
                         </div>
-                        <div class="budget-bar-track"><div class="budget-bar-fill ${cls}" style="width: ${Math.min(pct, 100)}%"></div></div>
+                        <!-- 고정 + 변동 이중 프로그레스 바 -->
+                        <div class="budget-bar-track" style="height: 14px; position: relative;">
+                            <div style="position: absolute; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #748ffc, #5c7cfa); width: ${Math.min(fixedPct, 100)}%;"></div>
+                            <div style="position: absolute; height: 100%; border-radius: 5px; background: ${pct > 100 ? 'linear-gradient(90deg, #ff8787, #fa5252)' : pct > 80 ? 'linear-gradient(90deg, #ffd43b, #fab005)' : 'linear-gradient(90deg, #69db7c, #51cf66)'}; left: ${Math.min(fixedPct, 100)}%; width: ${Math.min(dailyPct, 100 - Math.min(fixedPct, 100))}%;"></div>
+                        </div>
+                        <!-- 범례 -->
+                        <div style="display: flex; gap: 16px; margin-top: 8px; font-size: 12px; flex-wrap: wrap;">
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <span style="width: 10px; height: 10px; border-radius: 2px; background: #5c7cfa; display: inline-block;"></span>
+                                <span style="color: var(--text-muted);">📌 ${t('fixedLabel') || '고정'}: ${formatCurrency(totalFixed)}</span>
+                            </span>
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <span style="width: 10px; height: 10px; border-radius: 2px; background: ${cls === 'ok' ? '#51cf66' : cls === 'warn' ? '#fab005' : '#fa5252'}; display: inline-block;"></span>
+                                <span style="color: var(--text-muted);">💸 ${t('variableLabel') || '변동'}: ${formatCurrency(totalDaily)}</span>
+                            </span>
+                            ${remaining > 0 ? `<span style="color: #28a745; font-weight: 600;">💰 ${t('remaining2')}: ${formatCurrency(remaining)}</span>` : ''}
+                        </div>
+                        <!-- 고정지출 제외 남은 변동 예산 -->
+                        ${budgetGoals.total > totalFixed ? `
+                        <div style="margin-top: 10px; padding: 10px; background: var(--bg-secondary); border-radius: 6px; font-size: 13px;">
+                            <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                                <span>💡 ${t('variableBudget') || '변동지출 예산'} (${t('totalBudget').replace(' (€)', '')} − ${t('fixedLabel') || '고정'})</span>
+                                <span style="font-weight: 600;">${formatCurrency(budgetGoals.total - totalFixed)}</span>
+                            </div>
+                            <div class="budget-bar-track" style="margin-top: 6px;">
+                                <div class="budget-bar-fill ${totalDaily > (budgetGoals.total - totalFixed) ? 'over' : totalDaily > (budgetGoals.total - totalFixed) * 0.8 ? 'warn' : 'ok'}" 
+                                     style="width: ${Math.min((totalDaily / (budgetGoals.total - totalFixed)) * 100, 100)}%"></div>
+                            </div>
+                            <div style="text-align: right; margin-top: 4px; font-size: 12px; color: var(--text-muted);">
+                                ${formatCurrency(totalDaily)} / ${formatCurrency(budgetGoals.total - totalFixed)}
+                                ${(budgetGoals.total - totalFixed - totalDaily) > 0 
+                                    ? ` — <span style="color: #28a745;">${formatCurrency(budgetGoals.total - totalFixed - totalDaily)} ${t('remaining2')}</span>` 
+                                    : ` — <span style="color: #fa5252;">+${formatCurrency(totalDaily - (budgetGoals.total - totalFixed))} ${t('over')}</span>`}
+                            </div>
+                        </div>` : ''}
                     </div>`;
             }
 
-            // Per-category budgets
+            // ===== 카테고리별 예산 (고정지출 매칭 포함) =====
             getAllCategories().filter(c => budgetGoals[c.name]).forEach(cat => {
-                const catSpent = monthlyExp.filter(e => e.category === cat.name).reduce((s, e) => s + e.amount, 0);
+                const catDaily = dailyExp.filter(e => e.category === cat.name).reduce((s, e) => s + e.amount, 0);
+                // 고정지출 중 이 카테고리와 이름이 매칭되는 것 찾기
+                const catFixed = fixedExpenses.filter(f => matchFixedToCategory(f.name, cat.name)).reduce((s, e) => s + e.amount, 0);
+                const catTotal = catDaily + catFixed;
                 const budget = budgetGoals[cat.name];
-                const pct = (catSpent / budget) * 100;
+                const pct = (catTotal / budget) * 100;
                 const cls = pct > 100 ? 'over' : pct > 80 ? 'warn' : 'ok';
+                const fixedPctCat = (catFixed / budget) * 100;
+
                 html += `
                     <div class="budget-item">
                         <div class="budget-header">
                             <span>${cat.emoji} ${getCategoryDisplayName(cat.name)}</span>
-                            <span style="font-size: 13px; color: var(--text-muted);">${formatCurrency(catSpent)} / ${formatCurrency(budget)}</span>
+                            <span style="font-size: 13px; color: var(--text-muted);">${formatCurrency(catTotal)} / ${formatCurrency(budget)}</span>
                         </div>
-                        <div class="budget-bar-track"><div class="budget-bar-fill ${cls}" style="width: ${Math.min(pct, 100)}%"></div></div>
+                        <div class="budget-bar-track" style="position: relative;">
+                            ${catFixed > 0 ? `<div style="position: absolute; height: 100%; border-radius: 5px; background: #748ffc; width: ${Math.min(fixedPctCat, 100)}%;"></div>` : ''}
+                            <div class="budget-bar-fill ${cls}" style="width: ${Math.min(pct, 100)}%; opacity: ${catFixed > 0 ? '0.7' : '1'};"></div>
+                        </div>
+                        ${catFixed > 0 ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">📌 ${formatCurrency(catFixed)} + 💸 ${formatCurrency(catDaily)}</div>` : ''}
                     </div>`;
             });
             
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        // 고정지출 이름 → 카테고리 매칭 (키워드 기반)
+        function matchFixedToCategory(fixedName, categoryName) {
+            const name = fixedName.toLowerCase();
+            const catMap = {
+                '식비': ['식비', '음식', 'food', 'grocery', 'market', 'lebensmittel', 'essen'],
+                '교통': ['교통', '주유', '버스', '지하철', 'transport', 'gas', 'fuel', 'verkehr', 'tanken'],
+                '쇼핑': ['쇼핑', 'shopping', 'einkauf', 'amazon'],
+                '문화생활': ['문화', 'netflix', 'spotify', 'youtube', 'entertainment', 'unterhaltung', 'disney', 'hbo'],
+                '구독료': ['구독', '멤버십', 'subscription', 'member', 'abo', 'premium', 'netflix', 'spotify', 'youtube', 'apple', 'icloud', 'google one'],
+                '의료': ['의료', '보험', '병원', '약', 'medical', 'insurance', 'health', 'versicherung', 'arzt', 'kranken'],
+                '교육': ['교육', '학원', '강의', 'education', 'course', 'tuition', 'bildung', 'kurs'],
+                '기타': []
+            };
+            const keywords = catMap[categoryName] || [];
+            return keywords.some(kw => name.includes(kw));
         }
 
         // ===== Charts =====
@@ -4666,10 +4772,17 @@
                 categoryTotals[cat] = (categoryTotals[cat] || 0) + e.amount;
             });
 
+            // 고정지출을 별도 항목으로 추가
+            const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+            if (totalFixed > 0) {
+                const fixedLabel = t('fixedLabel') || '고정';
+                categoryTotals['📌 ' + fixedLabel] = totalFixed;
+            }
+
             const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-            const labels = sorted.map(([cat]) => getCategoryDisplayName(cat));
+            const labels = sorted.map(([cat]) => cat.startsWith('📌') ? cat : getCategoryDisplayName(cat));
             const data = sorted.map(([, amt]) => amt);
-            const colors = ['#667eea','#764ba2','#f093fb','#f5576c','#4facfe','#43e97b','#fa709a','#fee140','#a18cd1','#fbc2eb'];
+            const colors = ['#667eea','#764ba2','#f093fb','#f5576c','#4facfe','#43e97b','#fa709a','#fee140','#a18cd1','#fbc2eb','#748ffc','#99e9f2'];
 
             if (donutChartInst) donutChartInst.destroy();
             const textColor = darkMode ? '#e4e6eb' : '#212529';
@@ -4679,7 +4792,16 @@
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: textColor, padding: 12, font: { size: 12 } } }
+                        legend: { position: 'bottom', labels: { color: textColor, padding: 12, font: { size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = ((ctx.raw / total) * 100).toFixed(1);
+                                    return ` ${ctx.label}: €${ctx.raw.toFixed(2)} (${pct}%)`;
+                                }
+                            }
+                        }
                     },
                     cutout: '60%'
                 }
@@ -4691,9 +4813,11 @@
             if (!canvas || typeof Chart === 'undefined') return;
 
             const labels = [];
-            const expenses = [];
+            const fixedArr = [];
+            const variableArr = [];
             const incomes = [];
             const now = new Date(currentViewMonth);
+            const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
 
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -4702,7 +4826,9 @@
                 labels.push(mLabel);
                 
                 const mExp = getMonthlyExpenses(y, m);
-                expenses.push(mExp.filter(e => e.type !== 'income').reduce((s, e) => s + e.amount, 0));
+                const dailyTotal = mExp.filter(e => e.type !== 'income').reduce((s, e) => s + e.amount, 0);
+                fixedArr.push(totalFixed);
+                variableArr.push(dailyTotal);
                 incomes.push(mExp.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0));
             }
 
@@ -4714,16 +4840,17 @@
                 data: {
                     labels,
                     datasets: [
-                        { label: t('expense').replace('💸 ', ''), data: expenses, backgroundColor: '#ff6b6b', borderRadius: 4 },
-                        { label: t('income').replace('💰 ', ''), data: incomes, backgroundColor: '#51cf66', borderRadius: 4 }
+                        { label: '📌 ' + (t('fixedLabel') || '고정'), data: fixedArr, backgroundColor: '#748ffc', borderRadius: 4, stack: 'expense' },
+                        { label: '💸 ' + (t('variableLabel') || '변동'), data: variableArr, backgroundColor: '#ff6b6b', borderRadius: 4, stack: 'expense' },
+                        { label: '💰 ' + (t('income') || '수입').replace('💰 ', ''), data: incomes, backgroundColor: '#51cf66', borderRadius: 4, stack: 'income' }
                     ]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { labels: { color: textColor } } },
+                    plugins: { legend: { labels: { color: textColor, font: { size: 11 } } } },
                     scales: {
-                        x: { ticks: { color: textColor }, grid: { color: gridColor } },
-                        y: { ticks: { color: textColor, callback: v => '€' + v }, grid: { color: gridColor } }
+                        x: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } },
+                        y: { stacked: true, ticks: { color: textColor, callback: v => '€' + v }, grid: { color: gridColor } }
                     }
                 }
             });
@@ -4738,16 +4865,21 @@
             const currExp = getMonthlyExpenses(y, m).filter(e => e.type !== 'income');
             const prevExp = getMonthlyExpenses(prevDate.getFullYear(), prevDate.getMonth()).filter(e => e.type !== 'income');
 
-            const currTotal = currExp.reduce((s, e) => s + e.amount, 0);
-            const prevTotal = prevExp.reduce((s, e) => s + e.amount, 0);
+            const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+            const currDaily = currExp.reduce((s, e) => s + e.amount, 0);
+            const prevDaily = prevExp.reduce((s, e) => s + e.amount, 0);
+            // 총 지출 = 고정 + 변동
+            const currTotal = totalFixed + currDaily;
+            const prevTotal = totalFixed + prevDaily;
 
-            if (prevTotal === 0) {
+            if (prevDaily === 0 && totalFixed === 0) {
                 container.innerHTML = `<p style="color: var(--text-muted); font-size: 14px;">${t('noLastMonthData')}</p>`;
                 return;
             }
 
-            const diff = currTotal - prevTotal;
-            const pctChange = ((diff / prevTotal) * 100).toFixed(1);
+            // 변동지출만 비교 (고정은 매달 같으니까)
+            const diff = currDaily - prevDaily;
+            const pctChange = prevDaily > 0 ? ((diff / prevDaily) * 100).toFixed(1) : (currDaily > 0 ? '∞' : '0');
             const isUp = diff > 0;
             const arrow = isUp ? '📈' : diff < 0 ? '📉' : '➡️';
             const color = isUp ? '#fa5252' : diff < 0 ? '#51cf66' : 'var(--text-muted)';
@@ -4757,11 +4889,16 @@
                 <span style="font-size: 28px;">${arrow}</span>
                 <div>
                     <div style="font-size: 20px; font-weight: 700; color: ${color};">${isUp ? '+' : ''}${pctChange}% ${label}</div>
-                    <div style="font-size: 13px; color: var(--text-muted);">${formatCurrency(prevTotal)} → ${formatCurrency(currTotal)} (${isUp ? '+' : ''}${formatCurrency(diff)})</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">
+                        💸 ${t('variableLabel')}: ${formatCurrency(prevDaily)} → ${formatCurrency(currDaily)} (${isUp ? '+' : ''}${formatCurrency(diff)})
+                    </div>
+                    ${totalFixed > 0 ? `<div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                        📌 ${t('fixedLabel')}: ${formatCurrency(totalFixed)}/月 · ${currentLang === 'ko' ? '총' : 'Total'}: ${formatCurrency(currTotal)}
+                    </div>` : ''}
                 </div>
             </div>`;
 
-            // Per-category comparison
+            // 카테고리별 비교 (변동지출만)
             const allCats = new Set([...currExp.map(e => e.category), ...prevExp.map(e => e.category)]);
             let catHtml = '';
             allCats.forEach(cat => {
