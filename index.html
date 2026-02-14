@@ -4735,14 +4735,14 @@
         function matchFixedToCategory(fixedName, categoryName) {
             const name = fixedName.toLowerCase();
             const catMap = {
-                '식비': ['식비', '음식', 'food', 'grocery', 'market', 'lebensmittel', 'essen'],
-                '교통': ['교통', '주유', '버스', '지하철', 'transport', 'gas', 'fuel', 'verkehr', 'tanken'],
-                '쇼핑': ['쇼핑', 'shopping', 'einkauf', 'amazon'],
-                '문화생활': ['문화', 'netflix', 'spotify', 'youtube', 'entertainment', 'unterhaltung', 'disney', 'hbo'],
-                '구독료': ['구독', '멤버십', 'subscription', 'member', 'abo', 'premium', 'netflix', 'spotify', 'youtube', 'apple', 'icloud', 'google one'],
-                '의료': ['의료', '보험', '병원', '약', 'medical', 'insurance', 'health', 'versicherung', 'arzt', 'kranken'],
-                '교육': ['교육', '학원', '강의', 'education', 'course', 'tuition', 'bildung', 'kurs'],
-                '기타': []
+                '식비': ['식비', '음식', 'food', 'grocery', 'market', 'lebensmittel', 'essen', 'meal', 'lunch', 'dinner'],
+                '교통': ['교통', '주유', '버스', '지하철', '주차', 'transport', 'gas', 'fuel', 'verkehr', 'tanken', 'parking', 'metro', 'bahn', 'db '],
+                '쇼핑': ['쇼핑', 'shopping', 'einkauf', 'amazon', 'ebay', 'otto'],
+                '문화생활': ['문화', 'entertainment', 'unterhaltung', 'kino', 'theater', 'museum', 'concert'],
+                '구독료': ['구독', '멤버십', 'subscription', 'member', 'abo', 'premium', 'netflix', 'spotify', 'youtube', 'apple', 'icloud', 'google one', 'disney', 'hbo', 'amazon prime', 'chatgpt', 'gpt', 'claude', 'github'],
+                '의료': ['의료', '보험', '병원', '약국', '약', '건강', 'medical', 'insurance', 'health', 'versicherung', 'arzt', 'kranken', 'pharmacy', 'apotheke', 'krankenkasse'],
+                '교육': ['교육', '학원', '강의', '학비', '수업', 'education', 'course', 'tuition', 'bildung', 'kurs', 'udemy', 'coursera'],
+                '기타': ['월세', '집세', '관리비', '전기', '가스', '수도', '인터넷', '핸드폰', '통신', 'rent', 'miete', 'strom', 'electricity', 'water', 'wasser', 'internet', 'phone', 'handy', 'mobilfunk', 'nebenkosten', 'utility', 'utilities']
             };
             const keywords = catMap[categoryName] || [];
             return keywords.some(kw => name.includes(kw));
@@ -5061,13 +5061,43 @@
             monthlyExpenses.forEach(expense => {
                 const category = expense.category || '기타';
                 if (!categoryTotals[category]) {
-                    categoryTotals[category] = 0;
+                    categoryTotals[category] = { daily: 0, fixed: 0 };
                 }
-                categoryTotals[category] += expense.amount;
+                categoryTotals[category].daily += expense.amount;
+            });
+
+            // 고정지출을 카테고리에 매칭
+            fixedExpenses.forEach(f => {
+                let matched = false;
+                for (const catName of Object.keys(categoryTotals)) {
+                    if (matchFixedToCategory(f.name, catName)) {
+                        categoryTotals[catName].fixed += f.amount;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    // 기존 카테고리 중 매칭 시도
+                    const allCats = getAllCategories();
+                    for (const cat of allCats) {
+                        if (cat.name !== '수입' && matchFixedToCategory(f.name, cat.name)) {
+                            if (!categoryTotals[cat.name]) categoryTotals[cat.name] = { daily: 0, fixed: 0 };
+                            categoryTotals[cat.name].fixed += f.amount;
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (!matched) {
+                    // 매칭 안 되면 "📌 고정지출" 별도 항목
+                    const fixedKey = '📌 ' + (t('fixedLabel') || '고정');
+                    if (!categoryTotals[fixedKey]) categoryTotals[fixedKey] = { daily: 0, fixed: 0 };
+                    categoryTotals[fixedKey].fixed += f.amount;
+                }
             });
 
             // 총 지출 계산
-            const totalExpense = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
+            const totalExpense = Object.values(categoryTotals).reduce((sum, v) => sum + v.daily + v.fixed, 0);
 
             const statsContainer = document.getElementById('categoryStats');
             
@@ -5082,28 +5112,57 @@
             }
 
             // 금액순으로 정렬
-            const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+            const sortedCategories = Object.entries(categoryTotals)
+                .map(([cat, v]) => [cat, v.daily + v.fixed, v.daily, v.fixed])
+                .sort((a, b) => b[1] - a[1]);
 
             let html = '<div style="margin-top: 15px;">';
-            sortedCategories.forEach(([category, amount]) => {
-                const percentage = (amount / totalExpense * 100).toFixed(1);
-                const emoji = getCategoryEmoji(category);
+            sortedCategories.forEach(([category, total, daily, fixed]) => {
+                const percentage = (total / totalExpense * 100).toFixed(1);
+                const isFixedOnly = category.startsWith('📌');
+                const emoji = isFixedOnly ? '' : getCategoryEmoji(category);
+                const displayName = isFixedOnly ? category : getCategoryDisplayName(category);
+                
+                // 고정+변동 상세
+                let detail = '';
+                if (fixed > 0 && daily > 0) {
+                    detail = `<span style="font-size: 11px; color: var(--text-muted); margin-left: 6px;">📌${formatCurrency(fixed)} + 💸${formatCurrency(daily)}</span>`;
+                } else if (fixed > 0) {
+                    detail = `<span style="font-size: 11px; color: var(--text-muted); margin-left: 6px;">📌 ${t('fixedLabel') || '고정'}</span>`;
+                }
+
+                // 프로그레스 바 색상: 고정=파랑, 변동=보라
+                const fixedPct = (fixed / totalExpense * 100).toFixed(1);
+                const dailyPct = (daily / totalExpense * 100).toFixed(1);
                 
                 html += `
-                    <div class="category-stats-item" onclick="showCategoryDetails('${category}')">
+                    <div class="category-stats-item" onclick="showCategoryDetails('${category}')" style="cursor: pointer;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: 600; color: #212529;">${emoji} ${category}</span>
+                            <span style="font-weight: 600; color: var(--text-primary);">${emoji} ${displayName}${detail}</span>
                             <div style="text-align: right;">
-                                <span style="font-weight: bold; color: #212529; margin-right: 10px;">${formatCurrency(amount)}</span>
-                                <span style="color: #6c757d; font-size: 14px;">${percentage}%</span>
+                                <span style="font-weight: bold; color: var(--text-primary); margin-right: 10px;">${formatCurrency(total)}</span>
+                                <span style="color: var(--text-muted); font-size: 14px;">${percentage}%</span>
                             </div>
                         </div>
-                        <div style="background: #e9ecef; height: 8px; border-radius: 4px; overflow: hidden;">
-                            <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: ${percentage}%; transition: width 0.3s;"></div>
+                        <div style="background: var(--bg-secondary); height: 8px; border-radius: 4px; overflow: hidden; position: relative;">
+                            ${fixed > 0 ? `<div style="position:absolute; background: #748ffc; height: 100%; width: ${fixedPct}%; border-radius: 4px;"></div>` : ''}
+                            <div style="position:absolute; left: ${fixed > 0 ? fixedPct : 0}%; background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: ${dailyPct}%; border-radius: 4px;"></div>
                         </div>
                     </div>
                 `;
             });
+            
+            // 범례
+            if (fixedExpenses.length > 0) {
+                html += `<div style="display: flex; gap: 16px; margin-top: 12px; font-size: 11px; color: var(--text-muted);">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                        <span style="width: 10px; height: 10px; border-radius: 2px; background: #748ffc; display: inline-block;"></span> 📌 ${t('fixedLabel') || '고정'}
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                        <span style="width: 10px; height: 10px; border-radius: 2px; background: #667eea; display: inline-block;"></span> 💸 ${t('variableLabel') || '변동'}
+                    </span>
+                </div>`;
+            }
             html += '</div>';
 
             statsContainer.innerHTML = html;
@@ -5114,38 +5173,68 @@
             const year = currentViewMonth.getFullYear();
             const month = currentViewMonth.getMonth();
             
-            // 해당 월의 해당 카테고리 지출만 가져오기
-            const categoryExpenses = getMonthlyExpenses(year, month).filter(e => 
+            const isFixedCategory = categoryName.startsWith('📌');
+
+            // 해당 월의 해당 카테고리 일별 지출
+            const categoryExpenses = isFixedCategory ? [] : getMonthlyExpenses(year, month).filter(e => 
                 e.type !== 'income' && e.category === categoryName
             );
 
-            if (categoryExpenses.length === 0) {
-                alert(t('noCategoryExpense'));
+            // 해당 카테고리에 매칭되는 고정지출
+            const matchedFixed = isFixedCategory 
+                ? fixedExpenses.filter(f => {
+                    // "📌 고정" 카테고리 = 어디에도 매칭 안 된 고정지출
+                    const allCats = getAllCategories();
+                    return !allCats.some(c => c.name !== '수입' && matchFixedToCategory(f.name, c.name));
+                })
+                : fixedExpenses.filter(f => matchFixedToCategory(f.name, categoryName));
+
+            if (categoryExpenses.length === 0 && matchedFixed.length === 0) {
                 return;
             }
 
             // 날짜순 정렬 (최신순)
             const sorted = [...categoryExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            const emoji = getCategoryEmoji(categoryName);
-            const total = categoryExpenses.reduce((sum, e) => sum + e.amount, 0);
+            const emoji = isFixedCategory ? '📌' : getCategoryEmoji(categoryName);
+            const displayName = isFixedCategory ? categoryName : getCategoryDisplayName(categoryName);
+            const dailyTotal = categoryExpenses.reduce((sum, e) => sum + e.amount, 0);
+            const fixedTotal = matchedFixed.reduce((sum, e) => sum + e.amount, 0);
+            const total = dailyTotal + fixedTotal;
+            const itemCount = categoryExpenses.length + matchedFixed.length;
             
-            document.getElementById('modalDate').textContent = `${emoji} ${getCategoryDisplayName(categoryName)} (${typeof t('itemCount') === 'function' ? t('itemCount')(categoryExpenses.length) : categoryExpenses.length + '건'})`;
+            document.getElementById('modalDate').textContent = `${emoji} ${displayName} (${itemCount}건)`;
 
             let html = '<div style="max-height: 400px; overflow-y: auto;">';
             
+            // 고정지출 항목 먼저 표시
+            matchedFixed.forEach(f => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); background: ${darkMode ? '#1a3a5c' : '#e7f5ff'};">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">📌 ${f.name} <span style="font-size: 11px; padding: 2px 6px; background: #748ffc; color: white; border-radius: 4px;">${t('fixedLabel') || '고정'}</span></div>
+                            <div style="font-size: 13px; color: var(--text-muted);">${currentLang === 'ko' ? '매월 고정' : currentLang === 'de' ? 'Monatlich fix' : 'Monthly fixed'}</div>
+                        </div>
+                        <div style="font-weight: bold; color: var(--text-primary); white-space: nowrap; margin-left: 15px;">
+                            ${formatCurrency(f.amount)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 일별 지출 항목
             sorted.forEach(expense => {
                 const paymentBadge = expense.paymentMethod === 'crypto' 
                     ? `<span class="payment-badge crypto">${t('cryptoBadge')}</span>`
                     : `<span class="payment-badge regular">${t('regularBadge')}</span>`;
                 
                 html += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color);">
                         <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #212529; margin-bottom: 4px;">${expense.name} ${paymentBadge}</div>
-                            <div style="font-size: 13px; color: #6c757d;">${expense.date}</div>
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">${expense.name} ${paymentBadge}</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">${expense.date}</div>
                         </div>
-                        <div style="font-weight: bold; color: #212529; white-space: nowrap; margin-left: 15px;">
+                        <div style="font-weight: bold; color: var(--text-primary); white-space: nowrap; margin-left: 15px;">
                             ${formatCurrency(expense.amount)}
                         </div>
                     </div>
@@ -5159,6 +5248,7 @@
                     <span>${t('totalExpense')}</span>
                     <span>${formatCurrency(total)}</span>
                 </div>
+                ${fixedTotal > 0 && dailyTotal > 0 ? `<div style="font-size: 12px; color: var(--text-muted); text-align: right; margin-top: 4px;">📌 ${formatCurrency(fixedTotal)} + 💸 ${formatCurrency(dailyTotal)}</div>` : ''}
             `;
 
             document.getElementById('modalBody').innerHTML = html;
