@@ -185,6 +185,35 @@
             color: white;
         }
 
+        .hero-mode-toggle {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+        .hero-mode-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .transfer-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #748ffc;
+            color: white;
+        }
+
         .amount-hidden {
             letter-spacing: 4px;
         }
@@ -1283,17 +1312,18 @@
             <!-- Total Assets Hero -->
             <div class="balance-hero">
                 <button class="privacy-toggle" onclick="togglePrivacy()" id="privacyBtn" title="Hide/Show amounts">👁</button>
-                <div class="balance-hero-label" data-i18n="totalAssetLabel">총 자산</div>
-                <div class="balance-hero-amount" id="heroTotalAssets">€0.00</div>
-                <div class="balance-hero-sub" id="heroAssetsSub"></div>
+                <button class="hero-mode-toggle" onclick="cycleHeroMode()" id="heroModeBtn" title="표시 전환">⚙️</button>
+                <div class="balance-hero-label" id="heroMainLabel" data-i18n="totalAssetLabel">총 자산</div>
+                <div class="balance-hero-amount" id="heroMainAmount">€0.00</div>
+                <div class="balance-hero-sub" id="heroMainSub"></div>
                 <div class="balance-hero-row">
                     <div class="balance-hero-stat">
-                        <div class="balance-hero-stat-label" data-i18n="remaining">통장 남은 금액</div>
-                        <div class="balance-hero-stat-value positive" id="heroRemaining">€0</div>
+                        <div class="balance-hero-stat-label" id="heroStat1Label" data-i18n="remaining">통장 남은 금액</div>
+                        <div class="balance-hero-stat-value positive" id="heroStat1Value">€0</div>
                     </div>
                     <div class="balance-hero-stat">
-                        <div class="balance-hero-stat-label" data-i18n="monthlySpending">이번 달 지출</div>
-                        <div class="balance-hero-stat-value negative" id="heroMonthlySpent">€0</div>
+                        <div class="balance-hero-stat-label" id="heroStat2Label" data-i18n="monthlySpending">이번 달 지출</div>
+                        <div class="balance-hero-stat-value negative" id="heroStat2Value">€0</div>
                     </div>
                 </div>
             </div>
@@ -1318,6 +1348,10 @@
                 <div class="balance-item crypto">
                     <span data-i18n="cryptoCardExpense">🪙 가상화폐카드 지출:</span>
                     <span class="privacy-amount" id="cryptoExpenseDisplay">€0</span>
+                </div>
+                <div class="balance-item" style="display: none;">
+                    <span>🔄 <span data-i18n="transfer">이체</span>:</span>
+                    <span class="privacy-amount" id="transferDisplay">€0</span>
                 </div>
                 <div class="balance-item total">
                     <span data-i18n="remaining">통장 남은 금액:</span>
@@ -1392,7 +1426,37 @@
                         <select id="transactionType" onchange="updatePaymentMethodOptions()">
                             <option value="expense" data-i18n="expense">💸 지출</option>
                             <option value="income" data-i18n="income">💰 수입</option>
+                            <option value="transfer" data-i18n="transfer">🔄 이체</option>
                         </select>
+                    </div>
+                </div>
+                <!-- 이체 전용 필드 -->
+                <div id="transferFields" style="display: none;">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label data-i18n="transferFrom">출금 계좌</label>
+                            <select id="transferFrom">
+                                <option value="main" data-i18n="mainAccount">🏦 메인 통장 (EUR)</option>
+                                <option value="kr" data-i18n="krAccount">🇰🇷 한국 통장 (KRW)</option>
+                                <option value="crypto" data-i18n="cryptoAccount">🪙 가상화폐</option>
+                                <option value="other" data-i18n="otherAccount">📋 기타</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label data-i18n="transferTo">입금 계좌</label>
+                            <select id="transferTo">
+                                <option value="main" data-i18n="mainAccount">🏦 메인 통장 (EUR)</option>
+                                <option value="kr" data-i18n="krAccount">🇰🇷 한국 통장 (KRW)</option>
+                                <option value="crypto" data-i18n="cryptoAccount">🪙 가상화폐</option>
+                                <option value="other" data-i18n="otherAccount">📋 기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label data-i18n="transferMemo">메모 (선택)</label>
+                            <input type="text" id="transferMemo" data-i18n-placeholder="transferMemoPlaceholder" placeholder="예: 생활비 이체, 환전">
+                        </div>
                     </div>
                 </div>
                 <div class="input-row">
@@ -1405,7 +1469,7 @@
                         <input type="number" id="dailyAmount" data-i18n-placeholder="enterAmount" placeholder="금액 입력">
                     </div>
                 </div>
-                <div class="input-row">
+                <div class="input-row" id="categoryGroupContainer">
                     <div class="input-group">
                         <label data-i18n="category">카테고리</label>
                         <select id="categorySelect">
@@ -1474,6 +1538,7 @@
                             <option value="regular" data-i18n="regularCard">💳 일반카드 (통장)</option>
                             <option value="crypto" data-i18n="cryptoCard">🪙 가상화폐카드</option>
                             <option value="income" data-i18n="income">💰 수입</option>
+                            <option value="transfer" data-i18n="transfer">🔄 이체</option>
                         </select>
                     </div>
 
@@ -1911,7 +1976,13 @@
                 enterAmount: '금액 입력', fixedExpenseList: '고정지출 목록',
                 dragToReorder: '💡 드래그해서 순서 변경',
                 addDailyExpense: '일별 지출/수입 추가', date: '날짜', type: '유형',
-                expense: '💸 지출', income: '💰 수입',
+                expense: '💸 지출', income: '💰 수입', transfer: '🔄 이체',
+                transferFrom: '출금 계좌', transferTo: '입금 계좌',
+                transferMemo: '메모 (선택)', transferMemoPlaceholder: '예: 생활비 이체, 환전',
+                mainAccount: '🏦 메인 통장 (EUR)', krAccount: '🇰🇷 한국 통장 (KRW)',
+                cryptoAccount: '🪙 가상화폐', otherAccount: '📋 기타',
+                transferBadge: '이체', transferLabel: '→',
+                heroModeBank: '🏦 통장 잔액', heroModeAsset: '💎 총 자산', heroModeSpending: '💸 이번달 지출',
                 dailyNamePlaceholder: '예: 식비, 교통비, 빌려준 돈 회수',
                 category: '카테고리', paymentMethod: '결제 수단',
                 regularCard: '💳 일반카드 (통장)', cryptoCard: '🪙 가상화폐카드',
@@ -2055,7 +2126,13 @@
                 enterAmount: 'Enter amount', fixedExpenseList: 'Fixed Expenses List',
                 dragToReorder: '💡 Drag to reorder',
                 addDailyExpense: 'Add Daily Expense/Income', date: 'Date', type: 'Type',
-                expense: '💸 Expense', income: '💰 Income',
+                expense: '💸 Expense', income: '💰 Income', transfer: '🔄 Transfer',
+                transferFrom: 'From', transferTo: 'To',
+                transferMemo: 'Memo (optional)', transferMemoPlaceholder: 'e.g., Living expenses, exchange',
+                mainAccount: '🏦 Main Account (EUR)', krAccount: '🇰🇷 Korean Account (KRW)',
+                cryptoAccount: '🪙 Crypto', otherAccount: '📋 Other',
+                transferBadge: 'Transfer', transferLabel: '→',
+                heroModeBank: '🏦 Bank Balance', heroModeAsset: '💎 Total Assets', heroModeSpending: '💸 Monthly Spending',
                 dailyNamePlaceholder: 'e.g. Food, Transport, Refund',
                 category: 'Category', paymentMethod: 'Payment Method',
                 regularCard: '💳 Regular Card (Bank)', cryptoCard: '🪙 Crypto Card',
@@ -2197,7 +2274,13 @@
                 enterAmount: 'Betrag eingeben', fixedExpenseList: 'Fixkosten-Liste',
                 dragToReorder: '💡 Zum Sortieren ziehen',
                 addDailyExpense: 'Tägliche Ausgabe/Einnahme', date: 'Datum', type: 'Typ',
-                expense: '💸 Ausgabe', income: '💰 Einnahme',
+                expense: '💸 Ausgabe', income: '💰 Einnahme', transfer: '🔄 Überweisung',
+                transferFrom: 'Von', transferTo: 'Nach',
+                transferMemo: 'Notiz (optional)', transferMemoPlaceholder: 'z.B. Lebenshaltung, Umtausch',
+                mainAccount: '🏦 Hauptkonto (EUR)', krAccount: '🇰🇷 Koreanisches Konto (KRW)',
+                cryptoAccount: '🪙 Krypto', otherAccount: '📋 Sonstige',
+                transferBadge: 'Überw.', transferLabel: '→',
+                heroModeBank: '🏦 Kontostand', heroModeAsset: '💎 Gesamtvermögen', heroModeSpending: '💸 Monatsausgaben',
                 dailyNamePlaceholder: 'z.B. Essen, Transport, Erstattung',
                 category: 'Kategorie', paymentMethod: 'Zahlungsmittel',
                 regularCard: '💳 Bankkarte', cryptoCard: '🪙 Krypto-Karte',
@@ -2418,7 +2501,7 @@
             });
 
             // Hero section
-            ['heroTotalAssets', 'heroRemaining', 'heroMonthlySpent'].forEach(id => {
+            ['heroMainAmount', 'heroStat1Value', 'heroStat2Value'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 if (privacyMode) {
@@ -2446,7 +2529,17 @@
         }
 
         // Update hero total assets section
+        // Hero mode 전환
+        function cycleHeroMode() {
+            const modes = ['bank', 'asset', 'spending'];
+            const idx = modes.indexOf(heroMode);
+            heroMode = modes[(idx + 1) % modes.length];
+            localStorage.setItem('budgetHeroMode', heroMode);
+            updateDisplay();
+        }
+
         function updateHeroAssets() {
+            // 자산 총액 계산
             let totalAssetsEUR = 0;
             assets.forEach(asset => {
                 if (asset.assetType === 'stock') {
@@ -2457,20 +2550,84 @@
                 }
             });
 
-            const heroEl = document.getElementById('heroTotalAssets');
-            const subEl = document.getElementById('heroAssetsSub');
+            // 통장 잔액 계산
+            const year = currentViewMonth.getFullYear();
+            const month = currentViewMonth.getMonth();
+            const currentSalary = getMonthlySalary(year, month);
+            const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+            const monthlyExp = getMonthlyExpenses(year, month);
+            const regularExp = monthlyExp.filter(e => e.type === 'expense' && (e.paymentMethod || 'regular') === 'regular').reduce((s, e) => s + e.amount, 0);
+            const totalIncome = monthlyExp.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0);
+            // 이체 중 통장에서 나간 금액 (main → 다른곳)
+            const transferOut = monthlyExp.filter(e => e.type === 'transfer' && e.transferFrom === 'main').reduce((s, e) => s + e.amount, 0);
+            // 이체 중 통장에 들어온 금액 (다른곳 → main)
+            const transferIn = monthlyExp.filter(e => e.type === 'transfer' && e.transferTo === 'main').reduce((s, e) => s + e.amount, 0);
+            const bankRemaining = currentSalary + totalIncome - totalFixed - regularExp - transferOut + transferIn;
+            const totalMonthlySpent = totalFixed + regularExp + monthlyExp.filter(e => e.type === 'expense' && e.paymentMethod === 'crypto').reduce((s, e) => s + e.amount, 0);
 
-            setAmountText(heroEl, formatCurrency(totalAssetsEUR));
+            const mainLabel = document.getElementById('heroMainLabel');
+            const mainAmount = document.getElementById('heroMainAmount');
+            const mainSub = document.getElementById('heroMainSub');
+            const stat1Label = document.getElementById('heroStat1Label');
+            const stat1Value = document.getElementById('heroStat1Value');
+            const stat2Label = document.getElementById('heroStat2Label');
+            const stat2Value = document.getElementById('heroStat2Value');
+            const modeBtn = document.getElementById('heroModeBtn');
 
-            if (subEl) {
+            if (!mainLabel) return;
+
+            if (heroMode === 'bank') {
+                // 메인: 통장 잔액
+                mainLabel.textContent = t('heroModeBank');
+                setAmountText(mainAmount, formatCurrency(bankRemaining));
+                mainAmount.style.color = bankRemaining >= 0 ? '#69db7c' : '#ff8787';
+                mainSub.textContent = '';
+                // sub stats: 총 자산, 이번달 지출
+                stat1Label.textContent = t('heroModeAsset');
+                setAmountText(stat1Value, formatCurrency(totalAssetsEUR));
+                stat1Value.className = 'balance-hero-stat-value';
+                stat1Value.style.color = '#a5d8ff';
+                stat2Label.textContent = t('heroModeSpending');
+                setAmountText(stat2Value, formatCurrency(totalMonthlySpent));
+                stat2Value.className = 'balance-hero-stat-value negative';
+                stat2Value.style.color = '';
+                if (modeBtn) modeBtn.textContent = '🏦';
+            } else if (heroMode === 'asset') {
+                // 메인: 총 자산
+                mainLabel.textContent = t('heroModeAsset');
+                setAmountText(mainAmount, formatCurrency(totalAssetsEUR));
+                mainAmount.style.color = '';
+                // sub text
                 if (ratesLastUpdated && assets.length > 0) {
                     const timeStr = ratesLastUpdated.toLocaleTimeString(currentLang === 'ko' ? 'ko-KR' : currentLang === 'de' ? 'de-DE' : 'en-US', { hour: '2-digit', minute: '2-digit' });
-                    subEl.textContent = `📡 ${t('rateUpdated')} ${timeStr}`;
-                } else if (assets.length > 0) {
-                    subEl.textContent = t('defaultRatesUsed');
-                } else {
-                    subEl.textContent = '';
-                }
+                    mainSub.textContent = `📡 ${t('rateUpdated')} ${timeStr}`;
+                } else { mainSub.textContent = ''; }
+                // sub stats: 통장 잔액, 이번달 지출
+                stat1Label.textContent = t('heroModeBank');
+                setAmountText(stat1Value, formatCurrency(bankRemaining));
+                stat1Value.className = 'balance-hero-stat-value ' + (bankRemaining >= 0 ? 'positive' : 'negative');
+                stat1Value.style.color = '';
+                stat2Label.textContent = t('heroModeSpending');
+                setAmountText(stat2Value, formatCurrency(totalMonthlySpent));
+                stat2Value.className = 'balance-hero-stat-value negative';
+                stat2Value.style.color = '';
+                if (modeBtn) modeBtn.textContent = '💎';
+            } else {
+                // 메인: 이번달 지출
+                mainLabel.textContent = t('heroModeSpending');
+                setAmountText(mainAmount, formatCurrency(totalMonthlySpent));
+                mainAmount.style.color = '#ff8787';
+                mainSub.textContent = `📌 ${formatCurrency(totalFixed)} + 💸 ${formatCurrency(regularExp)}`;
+                // sub stats: 통장 잔액, 총 자산
+                stat1Label.textContent = t('heroModeBank');
+                setAmountText(stat1Value, formatCurrency(bankRemaining));
+                stat1Value.className = 'balance-hero-stat-value ' + (bankRemaining >= 0 ? 'positive' : 'negative');
+                stat1Value.style.color = '';
+                stat2Label.textContent = t('heroModeAsset');
+                setAmountText(stat2Value, formatCurrency(totalAssetsEUR));
+                stat2Value.className = 'balance-hero-stat-value';
+                stat2Value.style.color = '#a5d8ff';
+                if (modeBtn) modeBtn.textContent = '💸';
             }
         }
 
@@ -2484,6 +2641,7 @@
         let currentViewMonth = new Date(); // 메인 화면에서 보고 있는 월
         let customCategories = []; // 사용자 정의 카테고리
         let assets = []; // 자산 목록
+        let heroMode = localStorage.getItem('budgetHeroMode') || 'bank'; // 'bank', 'asset', 'spending'
 
         // 환율 (기본값 - 실시간 API로 업데이트됨)
         let exchangeRates = {
@@ -3329,11 +3487,28 @@
         function updatePaymentMethodOptions() {
             const transactionType = document.getElementById('transactionType').value;
             const paymentMethodGroup = document.getElementById('paymentMethodGroup');
+            const transferFields = document.getElementById('transferFields');
+            const categoryGroup = document.getElementById('categoryGroupContainer');
+            const nameInput = document.getElementById('dailyName');
             
-            if (transactionType === 'income') {
+            if (transactionType === 'transfer') {
                 paymentMethodGroup.style.display = 'none';
+                transferFields.style.display = 'block';
+                if (categoryGroup) categoryGroup.style.display = 'none';
+                // Default: kr → main
+                document.getElementById('transferFrom').value = 'kr';
+                document.getElementById('transferTo').value = 'main';
+                nameInput.placeholder = currentLang === 'ko' ? '예: 생활비 이체' : currentLang === 'de' ? 'z.B. Überweisung' : 'e.g., Transfer';
+            } else if (transactionType === 'income') {
+                paymentMethodGroup.style.display = 'none';
+                transferFields.style.display = 'none';
+                if (categoryGroup) categoryGroup.style.display = 'block';
+                nameInput.placeholder = t('dailyNamePlaceholder');
             } else {
                 paymentMethodGroup.style.display = 'block';
+                transferFields.style.display = 'none';
+                if (categoryGroup) categoryGroup.style.display = 'block';
+                nameInput.placeholder = t('dailyNamePlaceholder');
             }
         }
 
@@ -3443,10 +3618,52 @@
             const name = document.getElementById('dailyName').value;
             const amount = parseFloat(document.getElementById('dailyAmount').value);
             const transactionType = document.getElementById('transactionType').value;
-            const paymentMethod = transactionType === 'income' ? 'income' : document.getElementById('paymentMethod').value;
+            const paymentMethod = transactionType === 'income' ? 'income' : transactionType === 'transfer' ? 'transfer' : document.getElementById('paymentMethod').value;
             let category = document.getElementById('categorySelect').value;
 
-            if (!date || !name || !amount) {
+            if (!date || !amount) {
+                alert(t('enterAllFields'));
+                return;
+            }
+
+            // 이체 처리
+            if (transactionType === 'transfer') {
+                const from = document.getElementById('transferFrom').value;
+                const to = document.getElementById('transferTo').value;
+                const memo = document.getElementById('transferMemo').value;
+                if (from === to) {
+                    alert(currentLang === 'ko' ? '출금/입금 계좌가 같습니다.' : 'Source and destination are the same.');
+                    return;
+                }
+                const accountNames = { main: '🏦 EUR', kr: '🇰🇷 KRW', crypto: '🪙 Crypto', other: '📋 기타' };
+                const transferName = name || `${accountNames[from]} → ${accountNames[to]}`;
+                
+                dailyExpenses.push({
+                    id: Date.now(),
+                    date: date,
+                    name: transferName,
+                    amount: amount,
+                    paymentMethod: 'transfer',
+                    type: 'transfer',
+                    category: '이체',
+                    transferFrom: from,
+                    transferTo: to,
+                    transferMemo: memo
+                });
+
+                document.getElementById('dailyName').value = '';
+                document.getElementById('dailyAmount').value = '';
+                document.getElementById('transferMemo').value = '';
+                document.getElementById('transactionType').value = 'expense';
+                updatePaymentMethodOptions();
+                saveData();
+                updateDisplay();
+                renderDailyList();
+                if (currentView === 'calendar') renderCalendar();
+                return;
+            }
+
+            if (!name) {
                 alert(t('enterAllFields'));
                 return;
             }
@@ -3564,7 +3781,7 @@
             
             // 카테고리가 "기타"인 지출만 필터링
             const unclassifiedExpenses = dailyExpenses.filter(e => 
-                e.type !== 'income' && (e.category === '기타' || !e.category)
+                e.type === 'expense' && (e.category === '기타' || !e.category)
             );
 
             console.log('분류 대상 개수:', unclassifiedExpenses.length);
@@ -3707,19 +3924,14 @@
             const year = currentViewMonth.getFullYear();
             const month = currentViewMonth.getMonth();
             
-            // 해당 월의 월급 가져오기
             const currentSalary = getMonthlySalary(year, month);
-            
             const totalFixed = fixedExpenses.reduce((sum, e) => sum + e.amount, 0);
-            
-            // 해당 월의 일별지출만 가져오기
             const monthlyExpenses = getMonthlyExpenses(year, month);
             
-            // 지출과 수입 분리
-            const expenses = monthlyExpenses.filter(e => e.type !== 'income');
+            const expenses = monthlyExpenses.filter(e => e.type === 'expense');
             const incomes = monthlyExpenses.filter(e => e.type === 'income');
+            const transfers = monthlyExpenses.filter(e => e.type === 'transfer');
             
-            // 일반카드와 가상화폐카드 지출 분리
             const regularExpenses = expenses.filter(e => (e.paymentMethod || 'regular') === 'regular');
             const cryptoExpenses = expenses.filter(e => e.paymentMethod === 'crypto');
             
@@ -3727,8 +3939,12 @@
             const totalCrypto = cryptoExpenses.reduce((sum, e) => sum + e.amount, 0);
             const totalIncome = incomes.reduce((sum, e) => sum + e.amount, 0);
             
-            // 통장에서 나가는 금액 계산 (월급 + 수입 - 고정지출 - 일반카드지출)
-            const remaining = currentSalary + totalIncome - totalFixed - totalRegular;
+            // 이체: 통장(main)에서 나간/들어온 금액
+            const transferOut = transfers.filter(e => e.transferFrom === 'main').reduce((s, e) => s + e.amount, 0);
+            const transferIn = transfers.filter(e => e.transferTo === 'main').reduce((s, e) => s + e.amount, 0);
+            
+            // 통장에서 나가는 금액 계산 (월급 + 수입 - 고정지출 - 일반카드지출 - 이체출금 + 이체입금)
+            const remaining = currentSalary + totalIncome - totalFixed - totalRegular - transferOut + transferIn;
 
             setAmountText(document.getElementById('salaryDisplay'), formatCurrency(currentSalary));
             setAmountText(document.getElementById('incomeDisplay'), formatCurrency(totalIncome));
@@ -3737,29 +3953,29 @@
             setAmountText(document.getElementById('cryptoExpenseDisplay'), formatCurrency(totalCrypto));
             setAmountText(document.getElementById('remainingDisplay'), formatCurrency(remaining));
 
+            // 이체 표시
+            const transferDisplay = document.getElementById('transferDisplay');
+            const netTransfer = transferOut - transferIn;
+            if (transferDisplay) {
+                if (transfers.length > 0) {
+                    transferDisplay.parentElement.style.display = '';
+                    setAmountText(transferDisplay, formatCurrency(netTransfer));
+                } else {
+                    transferDisplay.parentElement.style.display = 'none';
+                }
+            }
+
             // 남은 금액 색상 변경
             const remainingEl = document.getElementById('remainingDisplay');
             if (remaining < 0) {
-                remainingEl.style.color = '#212529';
+                remainingEl.style.color = 'var(--text-primary)';
                 remainingEl.style.fontWeight = 'bold';
-            } else if (remaining < currentSalary * 0.2) {
-                remainingEl.style.color = '#495057';
             } else {
-                remainingEl.style.color = '#212529';
+                remainingEl.style.color = 'var(--text-primary)';
+                remainingEl.style.fontWeight = '';
             }
 
-            // Hero section update
-            const totalMonthlySpent = totalFixed + totalRegular + totalCrypto;
-            setAmountText(document.getElementById('heroRemaining'), formatCurrency(remaining));
-            setAmountText(document.getElementById('heroMonthlySpent'), formatCurrency(totalMonthlySpent));
-
-            // Hero remaining color
-            const heroRemainingEl = document.getElementById('heroRemaining');
-            if (heroRemainingEl) {
-                heroRemainingEl.className = 'balance-hero-stat-value ' + (remaining >= 0 ? 'positive' : 'negative');
-            }
-
-            // Update total assets in hero
+            // Update hero
             updateHeroAssets();
         }
 
@@ -3852,8 +4068,8 @@
             // 해당 월의 지출만 필터링
             const monthlyExpenses = getMonthlyExpenses(year, month);
             
-            // 지출과 수입 분리
-            const expenses = monthlyExpenses.filter(e => e.type !== 'income');
+            // 지출과 수입 분리 (이체 제외)
+            const expenses = monthlyExpenses.filter(e => e.type === 'expense');
             const incomes = monthlyExpenses.filter(e => e.type === 'income');
             
             // 월별 총 지출 계산 및 표시
@@ -3890,15 +4106,22 @@
 
             list.innerHTML = sorted.map(expense => {
                 const isIncome = expense.type === 'income';
+                const isTransfer = expense.type === 'transfer';
                 const paymentMethod = expense.paymentMethod || 'regular';
                 const category = expense.category || '기타';
                 
                 let badge = '';
                 let amountClass = '';
+                let amountPrefix = '';
                 
-                if (isIncome) {
+                if (isTransfer) {
+                    badge = `<span class="transfer-badge">${t('transferBadge')}</span>`;
+                    amountClass = '';
+                    amountPrefix = '🔄 ';
+                } else if (isIncome) {
                     badge = `<span class="payment-badge income">${t('incomeBadge')}</span>`;
                     amountClass = ' income';
+                    amountPrefix = '+';
                 } else if (paymentMethod === 'crypto') {
                     badge = `<span class="payment-badge crypto">${t('cryptoBadge')}</span>`;
                 } else {
@@ -3907,15 +4130,18 @@
                 
                 // 카테고리 이모지 매핑
                 const categoryEmoji = getCategoryEmoji(category);
-                const categoryBadge = `<span class="category-badge">${categoryEmoji} ${getCategoryDisplayName(category)}</span>`;
+                const categoryBadge = isTransfer ? '' : `<span class="category-badge">${categoryEmoji} ${getCategoryDisplayName(category)}</span>`;
+                
+                // 이체 상세
+                const transferDetail = isTransfer && expense.transferMemo ? ` · ${expense.transferMemo}` : '';
                 
                 return `
-                    <div class="list-item${isIncome ? ' income' : ''}">
+                    <div class="list-item${isIncome ? ' income' : ''}${isTransfer ? ' transfer' : ''}">
                         <div class="list-item-info">
                             <div class="list-item-name">${expense.name} ${badge} ${categoryBadge}</div>
-                            <div class="list-item-detail">${expense.date}</div>
+                            <div class="list-item-detail">${expense.date}${transferDetail}</div>
                         </div>
-                        <div class="list-item-amount${amountClass}">${isIncome ? '+' : ''}${formatCurrency(expense.amount)}</div>
+                        <div class="list-item-amount${amountClass}">${amountPrefix}${formatCurrency(expense.amount)}</div>
                         <button class="btn btn-edit" onclick="editDailyExpense(${expense.id})">${t('edit')}</button>
                         <button class="btn btn-delete" onclick="deleteDailyExpense(${expense.id})">${t('delete')}</button>
                     </div>
@@ -3977,7 +4203,7 @@
                 return expenseDate.getFullYear() === year && expenseDate.getMonth() === month;
             });
 
-            const expenses = monthlyExpenses.filter(e => e.type !== 'income');
+            const expenses = monthlyExpenses.filter(e => e.type === 'expense');
             const incomes = monthlyExpenses.filter(e => e.type === 'income');
 
             const monthlyRegular = expenses
@@ -4087,7 +4313,7 @@
             document.getElementById('modalDate').textContent = typeof t('dateDisplay') === 'function' ? t('dateDisplay')(year, month, day, weekday) : `${year}년 ${month}월 ${day}일 (${weekday})`;
 
             // 지출과 수입 분리
-            const expenses = dayExpenses.filter(e => e.type !== 'income');
+            const expenses = dayExpenses.filter(e => e.type === 'expense');
             const incomes = dayExpenses.filter(e => e.type === 'income');
             
             // 결제 수단별로 분리
@@ -4556,6 +4782,7 @@
                 let matchPay = true;
                 if (payFilter) {
                     if (payFilter === 'income') matchPay = item.classList.contains('income');
+                    else if (payFilter === 'transfer') matchPay = item.classList.contains('transfer');
                     else if (payFilter === 'crypto') matchPay = name.includes(t('cryptoBadge'));
                     else if (payFilter === 'regular') matchPay = name.includes(t('regularBadge'));
                 }
@@ -4661,7 +4888,7 @@
 
             const year = currentViewMonth.getFullYear();
             const month = currentViewMonth.getMonth();
-            const dailyExp = getMonthlyExpenses(year, month).filter(e => e.type !== 'income');
+            const dailyExp = getMonthlyExpenses(year, month).filter(e => e.type === 'expense');
             const totalDaily = dailyExp.reduce((s, e) => s + e.amount, 0);
             const totalSpent = totalFixed + totalDaily;
 
@@ -4785,7 +5012,7 @@
 
             const year = currentViewMonth.getFullYear();
             const month = currentViewMonth.getMonth();
-            const monthlyExp = getMonthlyExpenses(year, month).filter(e => e.type !== 'income');
+            const monthlyExp = getMonthlyExpenses(year, month).filter(e => e.type === 'expense');
 
             const categoryTotals = {};
             monthlyExp.forEach(e => {
@@ -4847,7 +5074,7 @@
                 labels.push(mLabel);
                 
                 const mExp = getMonthlyExpenses(y, m);
-                const dailyTotal = mExp.filter(e => e.type !== 'income').reduce((s, e) => s + e.amount, 0);
+                const dailyTotal = mExp.filter(e => e.type === 'expense').reduce((s, e) => s + e.amount, 0);
                 fixedArr.push(totalFixed);
                 variableArr.push(dailyTotal);
                 incomes.push(mExp.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0));
@@ -4883,8 +5110,8 @@
 
             const y = currentViewMonth.getFullYear(), m = currentViewMonth.getMonth();
             const prevDate = new Date(y, m - 1, 1);
-            const currExp = getMonthlyExpenses(y, m).filter(e => e.type !== 'income');
-            const prevExp = getMonthlyExpenses(prevDate.getFullYear(), prevDate.getMonth()).filter(e => e.type !== 'income');
+            const currExp = getMonthlyExpenses(y, m).filter(e => e.type === 'expense');
+            const prevExp = getMonthlyExpenses(prevDate.getFullYear(), prevDate.getMonth()).filter(e => e.type === 'expense');
 
             const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
             const currDaily = currExp.reduce((s, e) => s + e.amount, 0);
@@ -5075,7 +5302,7 @@
             const month = currentViewMonth.getMonth();
             
             // 해당 월의 지출만 가져오기 (수입 제외)
-            const monthlyExpenses = getMonthlyExpenses(year, month).filter(e => e.type !== 'income');
+            const monthlyExpenses = getMonthlyExpenses(year, month).filter(e => e.type === 'expense');
             
             // 카테고리별로 그룹화
             const categoryTotals = {};
@@ -5198,7 +5425,7 @@
 
             // 해당 월의 해당 카테고리 일별 지출
             const categoryExpenses = isFixedCategory ? [] : getMonthlyExpenses(year, month).filter(e => 
-                e.type !== 'income' && e.category === categoryName
+                e.type === 'expense' && e.category === categoryName
             );
 
             // 해당 카테고리에 매칭되는 고정지출
