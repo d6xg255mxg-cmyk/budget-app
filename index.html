@@ -1435,23 +1435,14 @@
                     <div class="input-row">
                         <div class="input-group">
                             <label data-i18n="transferFrom">출금 계좌</label>
-                            <select id="transferFrom">
-                                <option value="main" data-i18n="mainAccount">🏦 메인 통장 (EUR)</option>
-                                <option value="kr" data-i18n="krAccount">🇰🇷 한국 통장 (KRW)</option>
-                                <option value="crypto" data-i18n="cryptoAccount">🪙 가상화폐</option>
-                                <option value="other" data-i18n="otherAccount">📋 기타</option>
-                            </select>
+                            <select id="transferFrom"></select>
                         </div>
                         <div class="input-group">
                             <label data-i18n="transferTo">입금 계좌</label>
-                            <select id="transferTo">
-                                <option value="main" data-i18n="mainAccount">🏦 메인 통장 (EUR)</option>
-                                <option value="kr" data-i18n="krAccount">🇰🇷 한국 통장 (KRW)</option>
-                                <option value="crypto" data-i18n="cryptoAccount">🪙 가상화폐</option>
-                                <option value="other" data-i18n="otherAccount">📋 기타</option>
-                            </select>
+                            <select id="transferTo"></select>
                         </div>
                     </div>
+                    <div id="transferAmountHint" style="display: none; padding: 8px 12px; background: var(--bg-secondary); border-radius: 6px; font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;"></div>
                     <div class="input-row">
                         <div class="input-group">
                             <label data-i18n="transferMemo">메모 (선택)</label>
@@ -2559,9 +2550,9 @@
             const regularExp = monthlyExp.filter(e => e.type === 'expense' && (e.paymentMethod || 'regular') === 'regular').reduce((s, e) => s + e.amount, 0);
             const totalIncome = monthlyExp.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0);
             // 이체 중 통장에서 나간 금액 (main → 다른곳)
-            const transferOut = monthlyExp.filter(e => e.type === 'transfer' && e.transferFrom === 'main').reduce((s, e) => s + e.amount, 0);
+            const transferOut = monthlyExp.filter(e => e.type === 'transfer' && e.transferFrom === 'salary_account').reduce((s, e) => s + e.amount, 0);
             // 이체 중 통장에 들어온 금액 (다른곳 → main)
-            const transferIn = monthlyExp.filter(e => e.type === 'transfer' && e.transferTo === 'main').reduce((s, e) => s + e.amount, 0);
+            const transferIn = monthlyExp.filter(e => e.type === 'transfer' && e.transferTo === 'salary_account').reduce((s, e) => s + e.amount, 0);
             const bankRemaining = currentSalary + totalIncome - totalFixed - regularExp - transferOut + transferIn;
             const totalMonthlySpent = totalFixed + regularExp + monthlyExp.filter(e => e.type === 'expense' && e.paymentMethod === 'crypto').reduce((s, e) => s + e.amount, 0);
 
@@ -3495,9 +3486,7 @@
                 paymentMethodGroup.style.display = 'none';
                 transferFields.style.display = 'block';
                 if (categoryGroup) categoryGroup.style.display = 'none';
-                // Default: kr → main
-                document.getElementById('transferFrom').value = 'kr';
-                document.getElementById('transferTo').value = 'main';
+                populateTransferDropdowns();
                 nameInput.placeholder = currentLang === 'ko' ? '예: 생활비 이체' : currentLang === 'de' ? 'z.B. Überweisung' : 'e.g., Transfer';
             } else if (transactionType === 'income') {
                 paymentMethodGroup.style.display = 'none';
@@ -3510,6 +3499,111 @@
                 if (categoryGroup) categoryGroup.style.display = 'block';
                 nameInput.placeholder = t('dailyNamePlaceholder');
             }
+        }
+
+        // 이체 드롭다운을 자산 목록에서 생성
+        function populateTransferDropdowns() {
+            const fromSel = document.getElementById('transferFrom');
+            const toSel = document.getElementById('transferTo');
+            if (!fromSel || !toSel) return;
+
+            const externalLabel = currentLang === 'ko' ? '📋 외부 (자산 미등록)' : currentLang === 'de' ? '📋 Extern (nicht registriert)' : '📋 External (unregistered)';
+            const walletLabel = currentLang === 'ko' ? '🏦 월급 통장 (이 앱)' : currentLang === 'de' ? '🏦 Gehaltskonto (diese App)' : '🏦 Salary Account (this app)';
+
+            let options = `<option value="salary_account">${walletLabel}</option>`;
+            assets.forEach(a => {
+                const icon = a.assetType === 'crypto' ? '🪙' : a.assetType === 'stock' ? '📈' : '🏦';
+                const balance = a.assetType === 'stock' 
+                    ? `${a.amount}주` 
+                    : `${a.amount.toLocaleString()} ${a.currency}`;
+                options += `<option value="asset_${a.id}">${icon} ${a.platform} (${balance})</option>`;
+            });
+            options += `<option value="external">${externalLabel}</option>`;
+
+            fromSel.innerHTML = options;
+            toSel.innerHTML = options;
+
+            // 기본값: 자산 중 KRW → EUR or 첫번째 → 두번째
+            const krAsset = assets.find(a => a.currency === 'KRW');
+            const eurAsset = assets.find(a => a.currency === 'EUR');
+            if (krAsset) fromSel.value = 'asset_' + krAsset.id;
+            if (eurAsset) toSel.value = 'asset_' + eurAsset.id;
+            else toSel.value = 'salary_account';
+
+            // 잔액 힌트 업데이트
+            fromSel.onchange = toSel.onchange = updateTransferHint;
+            updateTransferHint();
+        }
+
+        function updateTransferHint() {
+            const hint = document.getElementById('transferAmountHint');
+            if (!hint) return;
+            const fromVal = document.getElementById('transferFrom').value;
+            const toVal = document.getElementById('transferTo').value;
+
+            let parts = [];
+            [fromVal, toVal].forEach((val, i) => {
+                if (val === 'salary_account') {
+                    parts.push(i === 0 ? `출금: 🏦 월급 통장` : `입금: 🏦 월급 통장`);
+                } else if (val.startsWith('asset_')) {
+                    const a = assets.find(x => x.id === parseInt(val.replace('asset_', '')));
+                    if (a) {
+                        const bal = a.assetType === 'stock' ? `${a.amount}주` : `${a.amount.toLocaleString()} ${a.currency}`;
+                        parts.push(`${i === 0 ? (currentLang==='ko'?'출금':'From') : (currentLang==='ko'?'입금':'To')}: ${a.platform} (${bal})`);
+                    }
+                }
+            });
+
+            if (parts.length > 0) {
+                hint.innerHTML = parts.join(' → ');
+                hint.style.display = 'block';
+            } else {
+                hint.style.display = 'none';
+            }
+        }
+
+        // 이체 시 자산 잔액 조정
+        function applyTransferToAssets(fromVal, toVal, amountEUR) {
+            // 출금 계좌 처리
+            if (fromVal.startsWith('asset_')) {
+                const id = parseInt(fromVal.replace('asset_', ''));
+                const asset = assets.find(a => a.id === id);
+                if (asset) {
+                    if (asset.currency === 'EUR') {
+                        asset.amount -= amountEUR;
+                    } else {
+                        // EUR → 해당 통화로 환산해서 차감
+                        const rate = exchangeRates[asset.currency] || 0;
+                        if (rate > 0) {
+                            const amountInCurrency = amountEUR / rate;
+                            asset.amount -= amountInCurrency;
+                        }
+                    }
+                    asset.amount = Math.round(asset.amount * 100) / 100;
+                }
+            }
+            // salary_account는 updateDisplay에서 자동 계산됨
+            // external은 자산에 영향 없음
+
+            // 입금 계좌 처리
+            if (toVal.startsWith('asset_')) {
+                const id = parseInt(toVal.replace('asset_', ''));
+                const asset = assets.find(a => a.id === id);
+                if (asset) {
+                    if (asset.currency === 'EUR') {
+                        asset.amount += amountEUR;
+                    } else {
+                        const rate = exchangeRates[asset.currency] || 0;
+                        if (rate > 0) {
+                            const amountInCurrency = amountEUR / rate;
+                            asset.amount += amountInCurrency;
+                        }
+                    }
+                    asset.amount = Math.round(asset.amount * 100) / 100;
+                }
+            }
+
+            saveData();
         }
 
         // 월급 설정
@@ -3635,9 +3729,22 @@
                     alert(currentLang === 'ko' ? '출금/입금 계좌가 같습니다.' : 'Source and destination are the same.');
                     return;
                 }
-                const accountNames = { main: '🏦 EUR', kr: '🇰🇷 KRW', crypto: '🪙 Crypto', other: '📋 기타' };
-                const transferName = name || `${accountNames[from]} → ${accountNames[to]}`;
+
+                // 계좌명 생성
+                function getAccountName(val) {
+                    if (val === 'salary_account') return '🏦 ' + (currentLang === 'ko' ? '월급 통장' : 'Salary');
+                    if (val === 'external') return '📋 ' + (currentLang === 'ko' ? '외부' : 'External');
+                    if (val.startsWith('asset_')) {
+                        const a = assets.find(x => x.id === parseInt(val.replace('asset_', '')));
+                        return a ? `${a.platform} (${a.currency})` : val;
+                    }
+                    return val;
+                }
+                const transferName = name || `${getAccountName(from)} → ${getAccountName(to)}`;
                 
+                // 자산 잔액 조정
+                applyTransferToAssets(from, to, amount);
+
                 dailyExpenses.push({
                     id: Date.now(),
                     date: date,
@@ -3659,6 +3766,7 @@
                 saveData();
                 updateDisplay();
                 renderDailyList();
+                renderAssetsList();
                 if (currentView === 'calendar') renderCalendar();
                 return;
             }
@@ -3903,12 +4011,19 @@
 
         // 일별지출 삭제
         function deleteDailyExpense(id) {
+            // 이체 삭제 시 자산 잔액 되돌리기
+            const expense = dailyExpenses.find(e => e.id === id);
+            if (expense && expense.type === 'transfer' && expense.transferFrom && expense.transferTo) {
+                // 반대로 적용 (from↔to)
+                applyTransferToAssets(expense.transferTo, expense.transferFrom, expense.amount);
+            }
+
             dailyExpenses = dailyExpenses.filter(e => e.id !== id);
             saveData();
             updateDisplay();
             renderDailyList();
+            renderAssetsList();
             
-            // 달력 보기가 활성화되어 있으면 달력도 업데이트
             if (currentView === 'calendar') {
                 renderCalendar();
             }
@@ -3940,8 +4055,8 @@
             const totalIncome = incomes.reduce((sum, e) => sum + e.amount, 0);
             
             // 이체: 통장(main)에서 나간/들어온 금액
-            const transferOut = transfers.filter(e => e.transferFrom === 'main').reduce((s, e) => s + e.amount, 0);
-            const transferIn = transfers.filter(e => e.transferTo === 'main').reduce((s, e) => s + e.amount, 0);
+            const transferOut = transfers.filter(e => e.transferFrom === 'salary_account').reduce((s, e) => s + e.amount, 0);
+            const transferIn = transfers.filter(e => e.transferTo === 'salary_account').reduce((s, e) => s + e.amount, 0);
             
             // 통장에서 나가는 금액 계산 (월급 + 수입 - 고정지출 - 일반카드지출 - 이체출금 + 이체입금)
             const remaining = currentSalary + totalIncome - totalFixed - totalRegular - transferOut + transferIn;
